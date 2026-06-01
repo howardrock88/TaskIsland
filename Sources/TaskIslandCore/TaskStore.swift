@@ -128,7 +128,7 @@ public final class TaskStore: ObservableObject {
     }
 
     public var currentTask: TaskItem? {
-        incompleteTasks.first(where: \.isCurrent) ?? incompleteTasks.first
+        incompleteTasks.first(where: \.isCurrent)
     }
 
     public var incompleteCount: Int {
@@ -202,7 +202,9 @@ public final class TaskStore: ObservableObject {
     }
 
     public var menuBarTitle: String {
-        guard let currentTask else { return "已完成" }
+        guard let currentTask else {
+            return incompleteTasks.isEmpty ? "已完成" : "暂无当前任务"
+        }
         return currentTask.title
     }
 
@@ -219,7 +221,7 @@ public final class TaskStore: ObservableObject {
         let item = TaskItem(
             title: title,
             notes: notes,
-            isCurrent: currentTask == nil,
+            isCurrent: false,
             sortIndex: nextSortIndex(),
             priority: parsedInput.priority,
             dueAt: parsedInput.dueAt,
@@ -237,7 +239,6 @@ public final class TaskStore: ObservableObject {
 
         context.insert(item)
         commitAndReload()
-        normalizeCurrentTask()
         return item
     }
 
@@ -267,7 +268,7 @@ public final class TaskStore: ObservableObject {
             title: title,
             notes: notes,
             isCompleted: isCompleted,
-            isCurrent: isCurrent || (!isCompleted && currentTask == nil),
+            isCurrent: isCurrent && !isCompleted,
             createdAt: createdAt,
             updatedAt: updatedAt,
             completedAt: completedAt,
@@ -515,7 +516,7 @@ public final class TaskStore: ObservableObject {
         task.reminderAt = dueAt
         task.postponedAt = now
         task.postponeCount += 1
-        if let dueAt, calendar.isDateInToday(dueAt) {
+        if let dueAt, calendar.isDate(dueAt, inSameDayAs: now) {
             task.todaySortIndex = task.todaySortIndex ?? nextTodaySortIndex()
         } else if option == .tomorrow || option == .thisWeek {
             task.todaySortIndex = nil
@@ -580,9 +581,12 @@ public final class TaskStore: ObservableObject {
         let activeTasks = incompleteTasks
         guard !activeTasks.isEmpty else { return }
 
-        let currentIndex = currentTask.flatMap { current in
-            activeTasks.firstIndex { $0.id == current.id }
-        } ?? 0
+        guard let currentTask else {
+            setCurrent(activeTasks[activeTasks.startIndex])
+            return
+        }
+
+        let currentIndex = activeTasks.firstIndex { $0.id == currentTask.id } ?? activeTasks.startIndex
 
         let nextIndex = activeTasks.index(after: currentIndex)
         let nextTask = activeTasks[nextIndex == activeTasks.endIndex ? activeTasks.startIndex : nextIndex]
@@ -794,25 +798,17 @@ public final class TaskStore: ObservableObject {
         let activeTasks = incompleteTasks
         var changed = false
 
-        if activeTasks.isEmpty {
-            for task in tasks where task.isCurrent {
-                task.isCurrent = false
-                task.updatedAt = Date()
-                changed = true
-            }
-        } else {
-            let currentTasks = activeTasks.filter(\.isCurrent)
-            if currentTasks.isEmpty, let firstTask = activeTasks.first {
-                firstTask.isCurrent = true
-                firstTask.updatedAt = Date()
-                changed = true
-            } else {
-                for task in currentTasks.dropFirst() {
-                    task.isCurrent = false
-                    task.updatedAt = Date()
-                    changed = true
-                }
-            }
+        for task in tasks where task.isCurrent && (task.isCompleted || activeTasks.isEmpty) {
+            task.isCurrent = false
+            task.updatedAt = Date()
+            changed = true
+        }
+
+        let currentTasks = activeTasks.filter(\.isCurrent)
+        for task in currentTasks.dropFirst() {
+            task.isCurrent = false
+            task.updatedAt = Date()
+            changed = true
         }
 
         if changed {

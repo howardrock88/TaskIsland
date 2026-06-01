@@ -12,11 +12,16 @@ private func require(_ condition: @autoclosure () -> Bool, _ message: String) {
 private func runChecks() throws {
     do {
         let store = try TaskStore(inMemory: true)
-        store.addTask(title: "Draft launch notes")
+        guard let task = store.addTask(title: "Draft launch notes") else {
+            fatalError("First task was not created")
+        }
         require(store.incompleteCount == 1, "First task was not added")
-        require(store.currentTask?.title == "Draft launch notes", "First task did not become current")
+        require(store.currentTask == nil, "New tasks should not become current automatically")
+        require(store.menuBarTitle == "暂无当前任务", "Menu bar title should show no explicit current task")
+        require(task.priority == .medium, "New tasks should default to medium priority")
+        store.setCurrent(task)
+        require(store.currentTask?.title == "Draft launch notes", "Explicit current task was not selected")
         require(store.currentTask?.isCurrent == true, "Current flag was not set")
-        require(store.currentTask?.priority == .medium, "New tasks should default to medium priority")
     }
 
     do {
@@ -25,9 +30,11 @@ private func runChecks() throws {
             fatalError("First task was not created")
         }
         store.addTask(title: "Second")
+        store.setCurrent(first)
         store.complete(first)
         require(store.incompleteCount == 1, "Completing current task left the wrong count")
-        require(store.currentTask?.title == "Second", "Next task was not promoted")
+        require(store.currentTask == nil, "Completing current task should not promote the next task")
+        require(store.incompleteTasks.first?.title == "Second", "Remaining task was not retained")
         require(store.completedTasks.count == 1, "Completed task was not retained")
     }
 
@@ -36,6 +43,8 @@ private func runChecks() throws {
         store.addTask(title: "One")
         store.addTask(title: "Two")
         store.addTask(title: "Three")
+        store.advanceCurrent()
+        require(store.currentTask?.title == "One", "Advance without a current task should select task one")
         store.advanceCurrent()
         require(store.currentTask?.title == "Two", "Advance did not select task two")
         store.advanceCurrent()
@@ -57,9 +66,11 @@ private func runChecks() throws {
             fatalError("First task was not created")
         }
         store.addTask(title: "Second")
+        store.setCurrent(first)
         store.delete(first)
         require(store.incompleteCount == 1, "Deleting current task left the wrong count")
-        require(store.currentTask?.title == "Second", "Deleting current task did not promote next")
+        require(store.currentTask == nil, "Deleting current task should not promote the next task")
+        require(store.incompleteTasks.first?.title == "Second", "Remaining task after delete was wrong")
     }
 
     do {
@@ -208,10 +219,16 @@ private func runChecks() throws {
             fatalError("Postpone task was not created")
         }
         store.setTodayQueue(task, isInTodayQueue: true)
-        store.postpone(task, option: .tomorrow, now: now)
-        require(task.postponeCount == 1, "Postpone count was not updated")
-        require(task.dueAt != nil, "Postpone did not set due date")
-        require(!task.isInTodayQueue, "Tomorrow postpone should leave Today queue")
+        guard let queuedTask = store.incompleteTasks.first(where: { $0.id == task.id }) else {
+            fatalError("Queued task was not found")
+        }
+        store.postpone(queuedTask, option: .tomorrow, now: now)
+        guard let postponedTask = store.incompleteTasks.first(where: { $0.id == task.id }) else {
+            fatalError("Postponed task was not found")
+        }
+        require(postponedTask.postponeCount == 1, "Postpone count was not updated")
+        require(postponedTask.dueAt != nil, "Postpone did not set due date")
+        require(!postponedTask.isInTodayQueue, "Tomorrow postpone should leave Today queue")
 
         let review = store.dailyReview(now: now)
         require(review.postponedToday.count == 1, "Daily review did not include postponed task")
@@ -234,8 +251,11 @@ private func runChecks() throws {
             fatalError("Task for this-week postpone was missing")
         }
         store.postpone(task, option: .thisWeek, now: now)
-        require(task.dueAt != nil, "This-week postpone did not set due date")
-        require(!task.isInTodayQueue, "This-week postpone should leave Today queue")
+        guard let postponedTask = store.incompleteTasks.first(where: { $0.id == task.id }) else {
+            fatalError("This-week postponed task was not found")
+        }
+        require(postponedTask.dueAt != nil, "This-week postpone did not set due date")
+        require(!postponedTask.isInTodayQueue, "This-week postpone should leave Today queue")
     }
 
     do {

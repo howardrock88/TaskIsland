@@ -62,15 +62,22 @@ struct TaskRowView: View {
                     }
                     .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    syncDrafts()
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        isShowingDetails.toggle()
-                    }
+                    toggleDetails()
                 }
 
                 Spacer(minLength: 6)
+
+                Button {
+                    toggleDetails()
+                } label: {
+                    Image(systemName: isShowingDetails ? "chevron.up" : "chevron.down")
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
+                .help(isShowingDetails ? "收起详情" : "展开详情")
 
                 Button {
                     store.toggleFocus(task)
@@ -491,6 +498,13 @@ struct TaskRowView: View {
     private func addSubtask() {
         store.addSubtask(newSubtaskTitle, to: task)
         newSubtaskTitle = ""
+    }
+
+    private func toggleDetails() {
+        syncDrafts()
+        withAnimation(.easeInOut(duration: 0.16)) {
+            isShowingDetails.toggle()
+        }
     }
 
     private func syncDrafts() {
