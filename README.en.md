@@ -18,11 +18,55 @@ TaskIsland is a local-first floating task app for macOS. It keeps the question �
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
 - **Installable builds**: scripts generate `.app`, `.pkg`, and `.dmg` packages for `/Applications/任务岛.app`.
 
-## Preview
+## Interface Tour
 
-| 16:9 poster | 3:4 portrait poster |
-| --- | --- |
-| ![16:9 poster](assets/posters/taskisland-poster-16x9.png) | ![3:4 poster](assets/posters/taskisland-poster-3x4.png) |
+### Floating Island
+
+![Floating island](assets/screenshots/01-floating-island.png)
+
+Collapsed mode shows high / medium / low priority counts. Hovering expands the island with the current task, quick add, completion, and pin controls.
+
+### Task Panel
+
+![Task panel](assets/screenshots/02-task-panel.png)
+
+Clicking the island opens the full task panel. It starts with all incomplete tasks and keeps current focus, task lists, view switching, and panel pinning in one place.
+
+### Quick Add
+
+![Quick add](assets/screenshots/03-quick-add.png)
+
+Quick add supports natural-language input for dates, times, priorities, tags, and estimated focus minutes.
+
+### Task Details
+
+![Task details](assets/screenshots/04-task-detail.png)
+
+Each task supports notes, due time, reminder time, repeat rule, project, tags, subtasks, and per-task focus minutes.
+
+### Task Views
+
+![Task views](assets/screenshots/05-task-views.png)
+
+Tasks can be viewed by All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
+
+### Settings: Display and Island
+
+![Display and island settings](assets/screenshots/06-settings-display-capsule.png)
+
+Settings cover the floating island toggle, menu bar title, dark mode, top spacing, transparency, background color, and text color.
+
+### Settings: Focus and Priorities
+
+![Focus and priority settings](assets/screenshots/07-settings-focus-priority.png)
+
+Configure the default focus duration, preset focus buttons, and high / medium / low priority colors.
+
+### Settings: Shortcuts and Data
+
+![Shortcut and data settings](assets/screenshots/08-settings-shortcuts-data.png)
+
+Customize quick-add shortcuts, choose export formats, refresh, import, export, import / export Apple Reminders, hide, and quit.
 
 ## Requirements
 
@@ -96,8 +140,9 @@ Sources/TaskIslandCore      task model, storage, parsing, import / export
 Sources/TaskIsland          macOS app, island, panels, shortcuts, integrations
 Sources/TaskIslandChecks    lightweight validation target
 Resources                   app icon
-Scripts                     packaging and poster generation scripts
+Scripts                     packaging and README image generation scripts
 assets/posters              GitHub presentation posters
+assets/screenshots          GitHub interface screenshots
 docs                        research and project notes
 ```
 
