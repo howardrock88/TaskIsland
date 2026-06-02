@@ -46,6 +46,10 @@ final class AppCoordinator {
         self.hotKeyManager = hotKeyManager
         self.reminderNotificationScheduler = reminderNotificationScheduler
 
+        reminderNotificationScheduler.onReminderDue = { [weak islandPanelController] taskID in
+            islandPanelController?.showReminderAlert(taskID: taskID)
+        }
+
         islandPanelController.onOpenTasks = { [weak taskPanelController, weak islandPanelController] in
             taskPanelController?.show(anchorFrame: islandPanelController?.screenFrame)
         }
@@ -88,7 +92,7 @@ final class AppCoordinator {
 
         store.$tasks
             .sink { [weak islandPanelController, weak statusItemController, weak reminderNotificationScheduler] tasks in
-                islandPanelController?.refreshLayout()
+                islandPanelController?.refreshLayout(animated: true)
                 statusItemController?.update()
                 reminderNotificationScheduler?.sync(tasks: tasks)
             }

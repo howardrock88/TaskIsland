@@ -5,6 +5,15 @@ import TaskIslandCore
 @MainActor
 final class ReminderNotificationScheduler {
     private let identifierPrefix = "taskisland-reminder-"
+    private var inAppReminderTasks: [String: Task<Void, Never>] = [:]
+
+    var onReminderDue: ((UUID) -> Void)?
+
+    deinit {
+        for task in inAppReminderTasks.values {
+            task.cancel()
+        }
+    }
 
     func sync(tasks: [TaskItem]) {
         let snapshots = tasks.compactMap { task -> NotificationSnapshot? in
@@ -15,12 +24,15 @@ final class ReminderNotificationScheduler {
             }
 
             return NotificationSnapshot(
+                taskID: task.id,
                 identifier: "\(identifierPrefix)\(task.id.uuidString)",
                 title: task.title,
                 body: notificationBody(for: task),
                 reminderAt: reminderAt
             )
         }
+
+        syncInAppReminders(snapshots)
 
         let center = UNUserNotificationCenter.current()
         guard !snapshots.isEmpty else {
@@ -74,9 +86,30 @@ final class ReminderNotificationScheduler {
         }
         return parts.joined(separator: " · ")
     }
+
+    private func syncInAppReminders(_ snapshots: [NotificationSnapshot]) {
+        for task in inAppReminderTasks.values {
+            task.cancel()
+        }
+        inAppReminderTasks.removeAll()
+
+        for snapshot in snapshots {
+            let interval = max(snapshot.reminderAt.timeIntervalSinceNow, 1)
+            inAppReminderTasks[snapshot.identifier] = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+
+                await MainActor.run {
+                    self?.inAppReminderTasks[snapshot.identifier] = nil
+                    self?.onReminderDue?(snapshot.taskID)
+                }
+            }
+        }
+    }
 }
 
 private struct NotificationSnapshot: Sendable {
+    let taskID: UUID
     let identifier: String
     let title: String
     let body: String

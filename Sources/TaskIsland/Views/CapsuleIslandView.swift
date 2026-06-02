@@ -7,6 +7,9 @@ final class IslandViewState: ObservableObject {
     @Published var showsExpandedContent = false
     @Published var isResizing = false
     @Published var isPinned = false
+    @Published var usesAttentionSize = false
+    @Published var reminderTaskID: UUID?
+    @Published var attentionStartedAt = Date()
 }
 
 struct CapsuleIslandView: View {
@@ -26,13 +29,18 @@ struct CapsuleIslandView: View {
                 .scaleEffect(showsExpandedContent ? 0.985 : 1)
                 .allowsHitTesting(showsCollapsedContent)
 
+            attentionContent
+                .opacity(showsAttentionContent ? 1 : 0)
+                .scaleEffect(showsAttentionContent ? 1 : 0.985)
+                .allowsHitTesting(showsAttentionContent)
+
             expandedContent
                 .opacity(showsExpandedDetails ? 1 : 0)
                 .scaleEffect(isExpanded ? 1 : 0.985)
                 .allowsHitTesting(showsExpandedDetails)
         }
-        .padding(.horizontal, isVisuallyExpanded ? 12 : 14)
-        .padding(.vertical, isVisuallyExpanded ? 7 : 3)
+        .padding(.horizontal, isVisuallyExpanded ? 12 : (isAttentionMode ? 12 : 14))
+        .padding(.vertical, isVisuallyExpanded ? 7 : (isAttentionMode ? 6 : 3))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(islandShape)
         .background {
@@ -57,6 +65,10 @@ struct CapsuleIslandView: View {
         }
         .overlay {
             visibilityContour
+                .allowsHitTesting(false)
+        }
+        .overlay {
+            attentionGlowOverlay
                 .allowsHitTesting(false)
         }
         .shadow(
@@ -104,8 +116,37 @@ struct CapsuleIslandView: View {
         viewState.isResizing
     }
 
+    private var usesAttentionSize: Bool {
+        viewState.usesAttentionSize
+    }
+
+    private var isAttentionMode: Bool {
+        usesAttentionSize && !isExpanded
+    }
+
+    private var attentionTask: TaskItem? {
+        store.activeFocusTask ?? reminderTask
+    }
+
+    private var reminderTask: TaskItem? {
+        guard let reminderTaskID = viewState.reminderTaskID else { return nil }
+        return store.incompleteTasks.first { $0.id == reminderTaskID }
+    }
+
+    private var isFocusAttention: Bool {
+        store.activeFocusTask != nil
+    }
+
+    private var isReminderAttention: Bool {
+        !isFocusAttention && reminderTask != nil
+    }
+
     private var showsCollapsedContent: Bool {
-        !isExpanded && !showsExpandedContent && !isResizing
+        !isExpanded && !showsExpandedContent && !isResizing && attentionTask == nil
+    }
+
+    private var showsAttentionContent: Bool {
+        !isExpanded && !showsExpandedContent && !isResizing && attentionTask != nil
     }
 
     private var showsExpandedDetails: Bool {
@@ -113,11 +154,14 @@ struct CapsuleIslandView: View {
     }
 
     private var isVisuallyExpanded: Bool {
-        isExpanded || showsExpandedContent || isResizing
+        isExpanded || showsExpandedContent || (isResizing && !isAttentionMode)
     }
 
     private var islandCornerRadius: CGFloat {
-        isVisuallyExpanded ? 28 : 15
+        if isAttentionMode {
+            return 26
+        }
+        return isVisuallyExpanded ? 28 : 15
     }
 
     private var islandShape: IslandGlassShape {
@@ -347,6 +391,90 @@ struct CapsuleIslandView: View {
         }
         .buttonStyle(.plain)
         .help("打开任务面板")
+    }
+
+    private var attentionContent: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            if let task = attentionTask {
+                let tint = task.priority.tintColor(settings: settings)
+                HStack(spacing: 9) {
+                    ZStack {
+                        Circle()
+                            .fill(tint.opacity(isReminderAttention ? 0.28 : 0.18))
+                            .frame(width: 26, height: 26)
+                        Image(systemName: isFocusAttention ? "timer.circle.fill" : "bell.badge.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(isFocusAttention ? capsuleTextColor : tint)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(task.title)
+                            .font(.system(size: 13.5, weight: .semibold))
+                            .foregroundStyle(capsuleTextColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+
+                        Text(attentionSubtitle(for: task, now: timeline.date))
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(capsuleSecondaryTextColor)
+                            .lineLimit(1)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Text(attentionTrailingText(for: task, now: timeline.date))
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(capsuleTextColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Color.white.opacity(isReminderAttention ? 0.14 : 0.09), in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .stroke(tint.opacity(isReminderAttention ? 0.34 : 0.20), lineWidth: 1)
+                        }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var attentionGlowOverlay: some View {
+        if showsAttentionContent, let task = attentionTask {
+            TimelineView(.animation) { timeline in
+                let elapsed = timeline.date.timeIntervalSince(viewState.attentionStartedAt)
+                let rotation = elapsed * (isReminderAttention ? 150 : 52)
+                let wave = (sin(elapsed * (isReminderAttention ? 5.4 : 2.2)) + 1) / 2
+                let tint = task.priority.tintColor(settings: settings)
+                let pulseOpacity = isReminderAttention ? 0.34 + 0.34 * wave : 0.20 + 0.10 * wave
+
+                ZStack {
+                    islandShape
+                        .stroke(
+                            AngularGradient(
+                                colors: [
+                                    .clear,
+                                    tint.opacity(pulseOpacity),
+                                    .white.opacity(isReminderAttention ? 0.72 : 0.36),
+                                    tint.opacity(pulseOpacity),
+                                    .clear
+                                ],
+                                center: .center,
+                                startAngle: .degrees(rotation),
+                                endAngle: .degrees(rotation + 360)
+                            ),
+                            lineWidth: isReminderAttention ? 2.5 : 1.6
+                        )
+                        .blur(radius: isReminderAttention ? 0.9 : 0.45)
+
+                    islandShape
+                        .stroke(tint.opacity(isReminderAttention ? 0.18 + 0.16 * wave : 0.10), lineWidth: isReminderAttention ? 6 : 4)
+                        .blur(radius: isReminderAttention ? 8 : 6)
+                        .scaleEffect(isReminderAttention ? 1.0 + 0.012 * wave : 1.0)
+                }
+            }
+        }
     }
 
     private var expandedContent: some View {
@@ -727,6 +855,36 @@ struct CapsuleIslandView: View {
             return focusDurationText(store.focusSeconds(for: task, now: now))
         }
         return "剩 \(focusDurationText(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt)))"
+    }
+
+    private func attentionSubtitle(for task: TaskItem, now: Date) -> String {
+        if isFocusAttention {
+            return "专注中 · \(task.priority.shortTitle)优先级"
+        }
+
+        if let reminderAt = task.reminderAt ?? task.dueAt {
+            return "提醒到了 · \(islandDateText(reminderAt))"
+        }
+        return "提醒到了 · \(task.priority.title)"
+    }
+
+    private func attentionTrailingText(for task: TaskItem, now: Date) -> String {
+        if isFocusAttention {
+            return focusCountdownText(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt))
+        }
+        return "现在"
+    }
+
+    private func focusCountdownText(_ seconds: TimeInterval) -> String {
+        let totalSeconds = max(Int(seconds.rounded()), 0)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let remainingSeconds = totalSeconds % 60
+
+        if hours > 0 {
+            return "\(hours):\(String(format: "%02d", minutes)):\(String(format: "%02d", remainingSeconds))"
+        }
+        return "\(minutes):\(String(format: "%02d", remainingSeconds))"
     }
 
     private func focusDurationText(_ seconds: TimeInterval) -> String {

@@ -18,12 +18,15 @@ final class IslandPanelController {
     private var collapseTask: Task<Void, Never>?
     private var frameAnimationGeneration = 0
     private var contentSwitchTask: Task<Void, Never>?
+    private var reminderAlertTask: Task<Void, Never>?
     private var eventMonitor: Any?
     private var globalMouseUpMonitor: Any?
 
     private let collapsedSize = NSSize(width: 172, height: 30)
+    private let attentionSize = NSSize(width: 340, height: 52)
     private let animationDuration = 0.45
     private let contentFadeDuration = 0.12
+    private let reminderAlertDuration: TimeInterval = 18
 
     private var expandedSize: NSSize {
         let visibleRows = max(1, min(3, store.incompleteCount))
@@ -88,10 +91,40 @@ final class IslandPanelController {
         }
     }
 
-    func refreshLayout() {
-        positionPanel(animated: false)
+    func refreshLayout(animated: Bool = false) {
+        clearStaleReminderAlertIfNeeded()
+        updateAttentionState()
+        positionPanel(animated: animated)
         if settings.showCapsule {
             panel.orderFrontRegardless()
+        }
+    }
+
+    func showReminderAlert(taskID: UUID) {
+        guard store.incompleteTasks.contains(where: { $0.id == taskID }) else { return }
+
+        reminderAlertTask?.cancel()
+        viewState.reminderTaskID = taskID
+        viewState.attentionStartedAt = Date()
+        updateAttentionState()
+
+        if !isPinned && !isDragging {
+            setExpanded(false)
+        }
+        positionPanel(animated: true)
+        panel.orderFrontRegardless()
+
+        reminderAlertTask = Task { @MainActor [weak self] in
+            let delay = self?.reminderAlertDuration ?? 18
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+            if self.viewState.reminderTaskID == taskID {
+                self.viewState.reminderTaskID = nil
+                self.updateAttentionState()
+                if !self.isExpanded && !self.isPinned {
+                    self.positionPanel(animated: true)
+                }
+            }
         }
     }
 
@@ -195,7 +228,8 @@ final class IslandPanelController {
     private func positionPanel(animated: Bool, completion: (@MainActor @Sendable () -> Void)? = nil) {
         guard let placement = placementContext() else { return }
 
-        let size = isExpanded ? expandedSize : collapsedSize
+        updateAttentionState()
+        let size = targetSize
         let frame = targetFrame(
             for: size,
             in: placement.screen.visibleFrame,
@@ -276,10 +310,44 @@ final class IslandPanelController {
     }
 
     private func cornerRadius(for size: NSSize) -> CGFloat {
-        if size.width <= collapsedSize.width + 1 && size.height <= collapsedSize.height + 1 {
+        if size.width <= attentionSize.width + 1 && size.height <= attentionSize.height + 1 {
             return size.height / 2
         }
         return min(28, size.height / 2)
+    }
+
+    private var targetSize: NSSize {
+        if isExpanded {
+            return expandedSize
+        }
+        if hasAttentionContent {
+            return attentionSize
+        }
+        return collapsedSize
+    }
+
+    private var hasAttentionContent: Bool {
+        store.activeFocusTask != nil || activeReminderTask != nil
+    }
+
+    private var activeReminderTask: TaskItem? {
+        guard let reminderTaskID = viewState.reminderTaskID else { return nil }
+        return store.incompleteTasks.first { $0.id == reminderTaskID }
+    }
+
+    private func updateAttentionState() {
+        clearStaleReminderAlertIfNeeded()
+        viewState.usesAttentionSize = hasAttentionContent && !isExpanded
+    }
+
+    private func clearStaleReminderAlertIfNeeded() {
+        guard let reminderTaskID = viewState.reminderTaskID else { return }
+        guard store.incompleteTasks.contains(where: { $0.id == reminderTaskID }) else {
+            viewState.reminderTaskID = nil
+            reminderAlertTask?.cancel()
+            reminderAlertTask = nil
+            return
+        }
     }
 
     private func setHostingCornerRadius(_ radius: CGFloat, on layer: CALayer) {
