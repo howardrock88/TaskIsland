@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from collections import deque
 from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
@@ -158,8 +159,46 @@ def chip_width(text: str) -> int:
     return int(ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(text, font=font(30))) + 34
 
 
+def remove_icon_canvas(icon: Image.Image) -> Image.Image:
+    icon = icon.copy()
+    pixels = icon.load()
+    width, height = icon.size
+    queue: deque[tuple[int, int]] = deque()
+    visited: set[tuple[int, int]] = set()
+
+    def is_blank(pixel: tuple[int, int, int, int]) -> bool:
+        red, green, blue, alpha = pixel
+        return alpha > 0 and red >= 238 and green >= 238 and blue >= 238 and max(red, green, blue) - min(red, green, blue) <= 18
+
+    for x in range(width):
+        for y in (0, height - 1):
+            if is_blank(pixels[x, y]):
+                queue.append((x, y))
+                visited.add((x, y))
+
+    for y in range(height):
+        for x in (0, width - 1):
+            if (x, y) not in visited and is_blank(pixels[x, y]):
+                queue.append((x, y))
+                visited.add((x, y))
+
+    while queue:
+        x, y = queue.popleft()
+        red, green, blue, _ = pixels[x, y]
+        pixels[x, y] = (red, green, blue, 0)
+        for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+            if nx < 0 or ny < 0 or nx >= width or ny >= height or (nx, ny) in visited:
+                continue
+            if is_blank(pixels[nx, ny]):
+                queue.append((nx, ny))
+                visited.add((nx, ny))
+
+    return icon
+
+
 def draw_icon(base: Image.Image, xy: tuple[int, int], size: int):
     icon = Image.open(ICON).convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
+    icon = remove_icon_canvas(icon)
     base.alpha_composite(icon, xy)
 
 
