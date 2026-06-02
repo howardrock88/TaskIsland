@@ -228,31 +228,41 @@ def ensure_ui_snapshots():
 
 
 def clip_ui_snapshots():
-    clip_specs = {
-        "island-collapsed.png": (172, "capsule"),
-        "island-attention.png": (340, "capsule"),
-        "island-expanded.png": (440, 28),
-        "task-panel.png": (430, 28),
-    }
-
     for name, (logical_width, radius) in clip_specs.items():
         path = UI_SNAPSHOTS / name
         image = Image.open(path).convert("RGBA")
-        scale = image.width / logical_width
-        radius_px = image.height // 2 if radius == "capsule" else int(radius * scale)
+        clipped_ui_snapshot(name, image).save(path)
 
-        mask = Image.new("L", image.size, 0)
-        ImageDraw.Draw(mask).rounded_rectangle(
-            (0, 0, image.width - 1, image.height - 1),
-            radius=radius_px,
-            fill=255,
-        )
-        image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
-        image.save(path)
+
+clip_specs = {
+    "island-collapsed.png": (172, "capsule"),
+    "island-attention.png": (340, "capsule"),
+    "island-expanded.png": (440, 28),
+    "task-panel.png": (430, 28),
+}
+
+
+def clipped_ui_snapshot(name: str, image: Image.Image) -> Image.Image:
+    spec = clip_specs.get(name)
+    if spec is None:
+        return image
+
+    logical_width, radius = spec
+    scale = image.width / logical_width
+    radius_px = image.height // 2 if radius == "capsule" else int(radius * scale)
+    mask = Image.new("L", image.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, image.width - 1, image.height - 1),
+        radius=radius_px,
+        fill=255,
+    )
+    clipped = image.copy()
+    clipped.putalpha(ImageChops.multiply(clipped.getchannel("A"), mask))
+    return clipped
 
 
 def paste_ui_snapshot(base: Image.Image, name: str, xy: tuple[int, int], scale: float = 1.0) -> tuple[int, int]:
-    image = Image.open(UI_SNAPSHOTS / name).convert("RGBA")
+    image = clipped_ui_snapshot(name, Image.open(UI_SNAPSHOTS / name).convert("RGBA"))
     size = (int(image.width / 3 * scale), int(image.height / 3 * scale))
     image = image.resize(size, Image.Resampling.LANCZOS)
     alpha = image.getchannel("A")
@@ -779,15 +789,58 @@ def draw_setting_card(
 
 
 def render_screenshot_floating_island():
-    img, draw = screenshot_canvas("悬浮岛", "收起时只留优先级数量，悬停后展开当前任务和快速操作。")
-    paste_ui_snapshot(img, "island-collapsed.png", (120, 240), 1.3)
-    paste_ui_snapshot(img, "island-attention.png", (105, 370), 1.0)
-    paste_ui_snapshot(img, "island-expanded.png", (95, 525), 1.0)
-    paste_ui_snapshot(img, "task-panel.png", (900, 190), 0.72)
-    x = draw_label(draw, (150, 770), "小胶囊：高 / 中 / 低数量")
-    x = draw_label(draw, (x, 770), "中胶囊：专注 / 提醒")
-    draw_label(draw, (x, 770), "展开态：任务行操作")
-    draw.text((920, 760), "点击空白区域打开完整任务面板；固定后可以常驻查看。", font=font(28), fill=(226, 248, 247, 224))
+    img, draw = screenshot_canvas("悬浮岛三种状态", "从数量总览，到专注提醒，再到任务行操作，都留在桌面顶部。")
+    ink = (235, 255, 255, 245)
+    muted = (219, 246, 245, 218)
+    card_ink = (18, 82, 90, 238)
+    card_muted = (47, 116, 124, 210)
+
+    states = [
+        (
+            "小胶囊",
+            "island-collapsed.png",
+            (132, 245),
+            2.45,
+            "红 / 黄 / 绿",
+            "分别代表高、中、低优先级；数字是对应优先级的未完成任务数量。",
+        ),
+        (
+            "专注 / 提醒胶囊",
+            "island-attention.png",
+            (96, 430),
+            1.72,
+            "标题 + 状态 + 倒计时",
+            "显示当前专注或提醒任务；右侧按钮用于暂停/继续和停止专注。",
+        ),
+        (
+            "展开悬浮岛",
+            "island-expanded.png",
+            (92, 625),
+            1.28,
+            "最多 3 条重点任务",
+            "悬停后展示任务行；每行可完成或删除，右侧加号新增，图钉用于固定展开。",
+        ),
+    ]
+
+    for title, snapshot, xy, scale, summary, detail in states:
+        x, y = xy
+        draw.text((x + 4, y - 50), title, font=font(30), fill=ink)
+        paste_ui_snapshot(img, snapshot, xy, scale)
+
+        card_x = 865
+        card_y = y - 36
+        paste_glass(img, (card_x, card_y), (590, 150), 28, (235, 252, 255, 168), (255, 255, 255, 132))
+        draw.text((card_x + 34, card_y + 26), summary, font=font(31), fill=card_ink)
+        draw_wrapped(
+            draw,
+            detail,
+            (card_x + 36, card_y + 76),
+            510,
+            font(23),
+            card_muted,
+            8,
+        )
+
     SCREENSHOTS.mkdir(parents=True, exist_ok=True)
     img.save(SCREENSHOTS / "01-floating-island.png")
 
