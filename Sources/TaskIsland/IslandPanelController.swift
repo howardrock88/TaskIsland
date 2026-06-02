@@ -94,6 +94,10 @@ final class IslandPanelController {
     func refreshLayout(animated: Bool = false) {
         clearStaleReminderAlertIfNeeded()
         updateAttentionState()
+        if store.focusAttentionTask != nil, !isPinned, isExpanded {
+            collapseImmediatelyForAttention()
+            return
+        }
         positionPanel(animated: animated)
         if settings.showCapsule {
             panel.orderFrontRegardless()
@@ -132,6 +136,7 @@ final class IslandPanelController {
         if hovered {
             collapseTask?.cancel()
             guard !isDragging else { return }
+            guard store.focusAttentionTask == nil else { return }
             setExpanded(true)
         } else {
             guard !isPinned else { return }
@@ -327,7 +332,7 @@ final class IslandPanelController {
     }
 
     private var hasAttentionContent: Bool {
-        store.activeFocusTask != nil || activeReminderTask != nil
+        store.focusAttentionTask != nil || activeReminderTask != nil
     }
 
     private var activeReminderTask: TaskItem? {
@@ -338,6 +343,17 @@ final class IslandPanelController {
     private func updateAttentionState() {
         clearStaleReminderAlertIfNeeded()
         viewState.usesAttentionSize = hasAttentionContent && !isExpanded
+    }
+
+    private func collapseImmediatelyForAttention() {
+        contentSwitchTask?.cancel()
+        collapseTask?.cancel()
+        isExpanded = false
+        viewState.showsExpandedContent = false
+        viewState.isExpanded = false
+        viewState.isResizing = false
+        updateAttentionState()
+        positionPanel(animated: true)
     }
 
     private func clearStaleReminderAlertIfNeeded() {
@@ -527,6 +543,9 @@ final class IslandPanelController {
 
     private func handleIslandClick(at point: NSPoint) -> Bool {
         guard isExpanded else {
+            if handleAttentionAction(at: point) {
+                return true
+            }
             onOpenTasks()
             return true
         }
@@ -542,6 +561,47 @@ final class IslandPanelController {
 
         onOpenTasks()
         return true
+    }
+
+    private func handleAttentionAction(at point: NSPoint) -> Bool {
+        guard viewState.usesAttentionSize,
+              let focusTask = store.focusAttentionTask else {
+            return false
+        }
+
+        let topLeftPoint = CGPoint(x: point.x, y: panel.frame.height - point.y)
+        let frames = attentionActionFrames(panelSize: panel.frame.size)
+
+        if frames.pause.contains(topLeftPoint) {
+            if focusTask.focusStartedAt == nil {
+                store.startFocus(focusTask)
+            } else {
+                store.pauseFocus(focusTask)
+            }
+            refreshLayout(animated: true)
+            return true
+        }
+
+        if frames.stop.contains(topLeftPoint) {
+            store.stopFocus(focusTask)
+            refreshLayout(animated: true)
+            return true
+        }
+
+        return false
+    }
+
+    private func attentionActionFrames(panelSize: NSSize) -> (pause: CGRect, stop: CGRect) {
+        let buttonSize: CGFloat = 24
+        let spacing: CGFloat = 5
+        let trailingPadding: CGFloat = 12
+        let y = max((panelSize.height - buttonSize) / 2, 0)
+        let stopX = panelSize.width - trailingPadding - buttonSize
+        let pauseX = stopX - spacing - buttonSize
+        return (
+            pause: CGRect(x: pauseX, y: y, width: buttonSize, height: buttonSize),
+            stop: CGRect(x: stopX, y: y, width: buttonSize, height: buttonSize)
+        )
     }
 
     private func handleExpandedTopAction(atTopLeftPoint point: CGPoint) -> Bool {

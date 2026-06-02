@@ -89,6 +89,7 @@ public final class TaskStore: ObservableObject {
 
     @Published public private(set) var tasks: [TaskItem] = []
     @Published public private(set) var lastError: String?
+    @Published public private(set) var focusAttentionTaskID: UUID?
 
     private let context: ModelContext
 
@@ -148,6 +149,14 @@ public final class TaskStore: ObservableObject {
 
     public var activeFocusTask: TaskItem? {
         incompleteTasks.first { $0.focusStartedAt != nil }
+    }
+
+    public var focusAttentionTask: TaskItem? {
+        if let activeFocusTask {
+            return activeFocusTask
+        }
+        guard let focusAttentionTaskID else { return nil }
+        return incompleteTasks.first { $0.id == focusAttentionTaskID }
     }
 
     public var todayCompletedTasks: [TaskItem] {
@@ -336,6 +345,7 @@ public final class TaskStore: ObservableObject {
 
         let nextRecurringTask = makeNextRecurringTask(from: task)
         stopFocusClock(task, now: now)
+        clearFocusAttentionIfNeeded(for: task)
         task.isCompleted = true
         task.isCurrent = false
         task.completedAt = now
@@ -350,6 +360,7 @@ public final class TaskStore: ObservableObject {
     }
 
     public func delete(_ task: TaskItem) {
+        clearFocusAttentionIfNeeded(for: task)
         context.delete(task)
         commitAndReload()
         normalizeCurrentTask()
@@ -431,13 +442,24 @@ public final class TaskStore: ObservableObject {
 
         clearCurrentFlags()
         task.isCurrent = true
+        focusAttentionTaskID = task.id
         task.focusStartedAt = task.focusStartedAt ?? now
         task.updatedAt = now
         commitAndReload()
     }
 
     public func pauseFocus(_ task: TaskItem, now: Date = Date()) {
+        guard !task.isCompleted else { return }
+
         stopFocusClock(task, now: now)
+        focusAttentionTaskID = task.id
+        commitAndReload()
+    }
+
+    public func stopFocus(_ task: TaskItem, now: Date = Date()) {
+        stopFocusClock(task, now: now)
+        clearFocusAttentionIfNeeded(for: task)
+        task.updatedAt = now
         commitAndReload()
     }
 
@@ -811,6 +833,11 @@ public final class TaskStore: ObservableObject {
             changed = true
         }
 
+        if let focusAttentionTaskID,
+           !activeTasks.contains(where: { $0.id == focusAttentionTaskID }) {
+            self.focusAttentionTaskID = nil
+        }
+
         if changed {
             commitAndReload()
         }
@@ -839,6 +866,12 @@ public final class TaskStore: ObservableObject {
         task.focusSeconds = task.focusSeconds + max(now.timeIntervalSince(startedAt), 0)
         task.focusStartedAt = nil
         task.updatedAt = now
+    }
+
+    private func clearFocusAttentionIfNeeded(for task: TaskItem) {
+        if focusAttentionTaskID == task.id {
+            focusAttentionTaskID = nil
+        }
     }
 
     private func suggestionScore(_ task: TaskItem, now: Date, endOfToday: Date) -> Int {

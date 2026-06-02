@@ -185,10 +185,18 @@ private func runChecks() throws {
         let pause = Date(timeIntervalSince1970: 700)
         store.startFocus(task, now: start)
         require(store.activeFocusTask?.id == task.id, "Focus task did not become active")
+        require(store.focusAttentionTask?.id == task.id, "Focus task did not enter attention display")
         store.pauseFocus(task, now: pause)
         require(Int(store.focusSeconds(for: task, now: pause)) == 600, "Focus seconds were not accumulated")
         require(Int(store.focusRemainingSeconds(for: task, now: pause, defaultMinutes: 45)) == 900, "Task duration should override default focus minutes")
         require(store.activeFocusTask == nil, "Paused focus task stayed active")
+        require(store.focusAttentionTask?.id == task.id, "Paused focus task should stay in attention display")
+        store.startFocus(task, now: pause)
+        require(store.activeFocusTask?.id == task.id, "Paused focus task did not resume")
+        let stop = Date(timeIntervalSince1970: 760)
+        store.stopFocus(task, now: stop)
+        require(store.activeFocusTask == nil, "Stopped focus task stayed active")
+        require(store.focusAttentionTask == nil, "Stopped focus task stayed in attention display")
 
         guard let defaultTask = store.addTask(title: "阅读资料") else {
             fatalError("Default focus task was not created")

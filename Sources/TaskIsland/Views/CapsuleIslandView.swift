@@ -125,7 +125,7 @@ struct CapsuleIslandView: View {
     }
 
     private var attentionTask: TaskItem? {
-        store.activeFocusTask ?? reminderTask
+        store.focusAttentionTask ?? reminderTask
     }
 
     private var reminderTask: TaskItem? {
@@ -134,7 +134,7 @@ struct CapsuleIslandView: View {
     }
 
     private var isFocusAttention: Bool {
-        store.activeFocusTask != nil
+        store.focusAttentionTask != nil
     }
 
     private var isReminderAttention: Bool {
@@ -433,6 +433,22 @@ struct CapsuleIslandView: View {
                             Capsule()
                                 .stroke(tint.opacity(isReminderAttention ? 0.34 : 0.20), lineWidth: 1)
                         }
+
+                    if isFocusAttention {
+                        HStack(spacing: 5) {
+                            AttentionActionButton(
+                                systemName: task.focusStartedAt == nil ? "play.fill" : "pause.fill",
+                                foregroundColor: capsuleTextColor,
+                                help: task.focusStartedAt == nil ? "继续专注" : "暂停专注"
+                            )
+
+                            AttentionActionButton(
+                                systemName: "stop.fill",
+                                foregroundColor: capsuleTextColor,
+                                help: "停止专注"
+                            )
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -859,7 +875,8 @@ struct CapsuleIslandView: View {
 
     private func attentionSubtitle(for task: TaskItem, now: Date) -> String {
         if isFocusAttention {
-            return "专注中 · \(task.priority.shortTitle)优先级"
+            let state = task.focusStartedAt == nil ? "已暂停" : "专注中"
+            return "\(state) · \(task.priority.shortTitle)优先级"
         }
 
         if let reminderAt = task.reminderAt ?? task.dueAt {
@@ -997,5 +1014,25 @@ private struct IslandTaskActionButton: View {
             }
         .buttonStyle(.plain)
         .help(help)
+    }
+}
+
+private struct AttentionActionButton: View {
+    let systemName: String
+    let foregroundColor: Color
+    let help: String
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 10.5, weight: .bold))
+            .foregroundStyle(foregroundColor.opacity(0.90))
+            .frame(width: 24, height: 24)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay {
+                Circle()
+                    .stroke(.white.opacity(0.38), lineWidth: 1)
+            }
+            .contentShape(Circle())
+            .help(help)
     }
 }
