@@ -891,11 +891,11 @@ def render_screenshot_quick_add():
 
 
 def render_screenshot_task_detail():
-    img, draw = screenshot_canvas("任务详情", "实际任务行展开态：编辑时间、项目标签、子任务、备注和专注分钟。")
-    paste_ui_snapshot(img, "task-detail.png", (560, 195), 1.55)
+    img, draw = screenshot_canvas("任务详情", "实际任务行展开态：编辑时间、项目标签、重复规则和专注分钟。")
+    paste_ui_snapshot(img, "task-detail.png", (585, 300), 1.55)
 
     label_y = 340
-    for text in ["标题可编辑", "任意提醒时间", "项目 / 标签", "子任务", "专注分钟"]:
+    for text in ["标题可编辑", "任意提醒时间", "项目 / 标签", "重复规则", "专注分钟"]:
         draw_label(draw, (185, label_y), text)
         label_y += 66
     img.save(SCREENSHOTS / "04-task-detail.png")

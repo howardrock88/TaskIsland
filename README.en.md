@@ -12,7 +12,7 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 - **Current task and focus**: mark any task as current, then use it from the focus card and menu bar. Starting focus moves the island into medium mode with pause, resume, and stop controls.
 - **Quick add**: press the default `Control + Option + N` shortcut and type natural language such as `tomorrow 10:00 weekly report #work !high /30m`.
 - **Task panel views**: All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
-- **Rich task details**: notes, arbitrary due date, arbitrary reminder time, repeat rule, project, tags, subtasks, estimated focus minutes, postpone, and “set as current”.
+- **Rich task details**: notes, arbitrary due date, arbitrary reminder time, repeat rule, project, tags, estimated focus minutes, postpone, and “set as current”.
 - **Custom appearance**: dark glass mode, island transparency, background color, text color, priority colors, top position, and drag placement.
 - **Local-first data**: SwiftData storage, no account required; JSON, Markdown, and CSV import / export.
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
@@ -42,7 +42,7 @@ Quick add supports natural-language input for dates, times, priorities, tags, an
 
 ![Task details](assets/screenshots/04-task-detail.png)
 
-Each task supports title editing, notes, due time, reminder time, repeat rule, project, tags, subtasks, postponing, “set as current”, and per-task focus minutes.
+Each task supports title editing, notes, due time, reminder time, repeat rule, project, tags, postponing, “set as current”, and per-task focus minutes.
 
 ### Task Views
 
@@ -120,7 +120,7 @@ The `.pkg` installer places `任务岛.app` in `/Applications`, registers it wit
 swift run TaskIslandChecks
 ```
 
-The check target covers task creation, completion, deletion, recurrence, priority, date parsing, focus timing, subtasks, import / export, and Todoist-style CSV import.
+The check target covers task creation, completion, deletion, recurrence, priority, date parsing, focus timing, import / export, and Todoist-style CSV import.
 
 ## URL Scheme
 

@@ -134,12 +134,7 @@ enum MarketingAssetRenderer {
             tags: ["AI", "研究"],
             projectName: "写作",
             estimatedMinutes: 25,
-            todaySortIndex: 0,
-            subtasks: [
-                TaskSubtask(title: "搜集资料", isCompleted: true),
-                TaskSubtask(title: "写初稿"),
-                TaskSubtask(title: "发布前校对")
-            ]
+            todaySortIndex: 0
         ) else {
             throw RenderError.demoDataFailed
         }
@@ -147,8 +142,11 @@ enum MarketingAssetRenderer {
         let view = TaskRowView(task: task, initiallyShowingDetails: true)
             .environmentObject(store)
             .environmentObject(makeSettings())
+            .frame(width: 430, alignment: .top)
+            .frame(width: 430, height: 220, alignment: .top)
+            .clipped()
 
-        try render(view, size: CGSize(width: 430, height: 470), padding: 0, to: url)
+        try render(view, size: CGSize(width: 430, height: 220), padding: 0, to: url)
     }
 
     private static func renderSettingsPanel(to url: URL, anchor: TaskPanelSettingsAnchor) throws {
