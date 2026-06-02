@@ -15,6 +15,9 @@ struct TaskRowView: View {
     @State private var dueDateDraft = Date()
     @State private var hasReminderDateDraft = false
     @State private var reminderDateDraft = Date()
+    @State private var isEditingTitle = false
+    @State private var titleDraft = ""
+    @FocusState private var isTitleFieldFocused: Bool
 
     let task: TaskItem
 
@@ -28,10 +31,7 @@ struct TaskRowView: View {
                     .shadow(color: tint.opacity(0.42), radius: 3)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(task.title)
-                        .font(.system(size: 14, weight: task.isCurrent ? .semibold : .regular))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
+                    titleEditor
 
                     HStack(spacing: 6) {
                         if task.isCurrent {
@@ -63,12 +63,12 @@ struct TaskRowView: View {
                         }
                     }
                     .lineLimit(1)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        toggleDetails()
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    toggleDetails()
-                }
 
                 Spacer(minLength: 6)
 
@@ -126,10 +126,49 @@ struct TaskRowView: View {
         .onAppear {
             syncDrafts()
         }
+        .onChange(of: task.title) { _, newValue in
+            if !isEditingTitle {
+                titleDraft = newValue
+            }
+        }
     }
 
     private var rowBackground: some ShapeStyle {
         task.isCurrent ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(.ultraThinMaterial)
+    }
+
+    @ViewBuilder
+    private var titleEditor: some View {
+        if isEditingTitle {
+            TextField("任务标题", text: $titleDraft)
+                .textFieldStyle(.plain)
+                .font(.system(size: 14, weight: task.isCurrent ? .semibold : .regular))
+                .focused($isTitleFieldFocused)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(task.priority.tintColor(settings: settings).opacity(0.30), lineWidth: 1)
+                }
+                .onSubmit(commitTitleEdit)
+                .onExitCommand(perform: cancelTitleEdit)
+                .onChange(of: isTitleFieldFocused) { _, isFocused in
+                    if !isFocused, isEditingTitle {
+                        commitTitleEdit()
+                    }
+                }
+        } else {
+            Text(task.title)
+                .font(.system(size: 14, weight: task.isCurrent ? .semibold : .regular))
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    startTitleEdit()
+                }
+                .help("点击编辑任务标题")
+        }
     }
 
     private func metadataBadge(_ title: String, systemName: String) -> some View {
@@ -508,6 +547,39 @@ struct TaskRowView: View {
         newSubtaskTitle = ""
     }
 
+    private func startTitleEdit() {
+        titleDraft = task.title
+        withAnimation(.easeInOut(duration: 0.12)) {
+            isEditingTitle = true
+        }
+        DispatchQueue.main.async {
+            isTitleFieldFocused = true
+        }
+    }
+
+    private func commitTitleEdit() {
+        let trimmedTitle = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedTitle.isEmpty {
+            titleDraft = task.title
+        } else {
+            store.updateTitle(task, title: trimmedTitle)
+            titleDraft = trimmedTitle
+        }
+
+        withAnimation(.easeInOut(duration: 0.12)) {
+            isEditingTitle = false
+        }
+        isTitleFieldFocused = false
+    }
+
+    private func cancelTitleEdit() {
+        titleDraft = task.title
+        withAnimation(.easeInOut(duration: 0.12)) {
+            isEditingTitle = false
+        }
+        isTitleFieldFocused = false
+    }
+
     private func toggleDetails() {
         syncDrafts()
         withAnimation(.easeInOut(duration: 0.16)) {
@@ -516,6 +588,7 @@ struct TaskRowView: View {
     }
 
     private func syncDrafts() {
+        titleDraft = task.title
         notesDraft = task.notes
         projectDraft = task.projectName ?? ""
         tagsDraft = task.tags.joined(separator: " ")

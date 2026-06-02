@@ -19,8 +19,12 @@ private func runChecks() throws {
         require(store.currentTask == nil, "New tasks should not become current automatically")
         require(store.menuBarTitle == "暂无当前任务", "Menu bar title should show no explicit current task")
         require(task.priority == .medium, "New tasks should default to medium priority")
+        store.updateTitle(task, title: "  Launch v1 checklist  ")
+        require(task.title == "Launch v1 checklist", "Task title was not updated and trimmed")
+        store.updateTitle(task, title: "   ")
+        require(task.title == "Launch v1 checklist", "Blank title should not overwrite an existing task")
         store.setCurrent(task)
-        require(store.currentTask?.title == "Draft launch notes", "Explicit current task was not selected")
+        require(store.currentTask?.title == "Launch v1 checklist", "Explicit current task was not selected")
         require(store.currentTask?.isCurrent == true, "Current flag was not set")
     }
 

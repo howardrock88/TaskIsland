@@ -408,6 +408,15 @@ public final class TaskStore: ObservableObject {
         commitAndReload()
     }
 
+    public func updateTitle(_ task: TaskItem, title rawTitle: String) {
+        let title = rawTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty, task.title != title else { return }
+
+        task.title = title
+        task.updatedAt = Date()
+        commitAndReload()
+    }
+
     public func setRepeatRule(_ task: TaskItem, repeatRule: TaskRepeatRule?) {
         task.repeatRule = repeatRule
         task.updatedAt = Date()
