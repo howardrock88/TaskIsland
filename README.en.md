@@ -8,7 +8,7 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ## Highlights
 
-- **Three island states**: collapsed mode shows high / medium / low priority counts; focus or reminder mode switches to a medium capsule with task title, countdown, pause, and stop; hover mode previews up to 3 important tasks.
+- **Three island states**: Number Island shows high / medium / low priority counts; Focus Island shows the active task, countdown, pause, and stop; Action Island previews up to 3 important tasks with quick add, pin, complete, and delete controls.
 - **Current task and focus**: mark any task as current, then use it from the focus card and menu bar. Starting focus moves the island into medium mode with pause, resume, and stop controls.
 - **Quick add**: press the default `Control + Option + N` shortcut and type natural language such as `tomorrow 10:00 weekly report #work !high /30m`.
 - **Task panel views**: All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
@@ -24,7 +24,7 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ![Floating island](assets/screenshots/01-floating-island.png)
 
-Collapsed mode shows high / medium / low priority counts. Hovering expands the island with up to 3 important tasks plus quick add, pin, complete, and delete controls. During focus or reminder alerts, the island becomes a medium capsule with task title, countdown, and focus controls.
+TaskIsland has three desktop states: Number Island for high / medium / low priority counts, Focus Island for active focus or reminder tasks with countdown controls, and Action Island for hover or pinned task actions with up to 3 important tasks.
 
 ### Task Panel
 
