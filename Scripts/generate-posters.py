@@ -62,9 +62,10 @@ def paste_glass(
     mask = rounded_mask(size, radius)
 
     if shadow:
-        shadow_layer = Image.new("RGBA", size, (0, 0, 0, 120))
-        shadow_layer.putalpha(mask.filter(ImageFilter.GaussianBlur(18)))
-        base.alpha_composite(shadow_layer, (x, y + 16))
+        shadow_alpha = mask.filter(ImageFilter.GaussianBlur(18)).point(lambda alpha: int(alpha * 0.22))
+        shadow_layer = Image.new("RGBA", size, (0, 0, 0, 0))
+        shadow_layer.putalpha(shadow_alpha)
+        base.alpha_composite(shadow_layer, (x, y + 14))
 
     panel = Image.new("RGBA", size, tint)
     shine = gradient(size, (255, 255, 255), (255, 255, 255))
@@ -197,6 +198,59 @@ def draw_play(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, sc
     )
 
 
+def draw_pause(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
+    x1, y1, x2, y2 = box
+    width = max(3, int(4 * scale))
+    top = y1 + int(12 * scale)
+    bottom = y2 - int(12 * scale)
+    draw.line((x1 + int(16 * scale), top, x1 + int(16 * scale), bottom), fill=ink, width=width)
+    draw.line((x2 - int(16 * scale), top, x2 - int(16 * scale), bottom), fill=ink, width=width)
+
+
+def draw_stop(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
+    x1, y1, x2, y2 = box
+    inset = int(14 * scale)
+    draw.rounded_rectangle(
+        (x1 + inset, y1 + inset, x2 - inset, y2 - inset),
+        radius=max(2, int(3 * scale)),
+        fill=ink,
+    )
+
+
+def draw_trash(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
+    x1, y1, x2, y2 = box
+    width = max(2, int(2 * scale))
+    cx = (x1 + x2) // 2
+    top = y1 + int(13 * scale)
+    draw.line((cx - int(10 * scale), top, cx + int(10 * scale), top), fill=ink, width=width)
+    draw.line((cx - int(5 * scale), top - int(4 * scale), cx + int(5 * scale), top - int(4 * scale)), fill=ink, width=width)
+    draw.rounded_rectangle(
+        (
+            cx - int(8 * scale),
+            top + int(4 * scale),
+            cx + int(8 * scale),
+            y2 - int(10 * scale),
+        ),
+        radius=max(2, int(3 * scale)),
+        outline=ink,
+        width=width,
+    )
+    draw.line((cx - int(3 * scale), top + int(8 * scale), cx - int(3 * scale), y2 - int(14 * scale)), fill=ink, width=max(1, width - 1))
+    draw.line((cx + int(3 * scale), top + int(8 * scale), cx + int(3 * scale), y2 - int(14 * scale)), fill=ink, width=max(1, width - 1))
+
+
+def draw_timer(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
+    x1, y1, x2, y2 = box
+    cx = (x1 + x2) // 2
+    cy = (y1 + y2) // 2 + int(2 * scale)
+    r = int(12 * scale)
+    width = max(2, int(2 * scale))
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=ink, width=width)
+    draw.line((cx, cy, cx, cy - int(7 * scale)), fill=ink, width=width)
+    draw.line((cx, cy, cx + int(6 * scale), cy + int(4 * scale)), fill=ink, width=width)
+    draw.line((cx - int(5 * scale), y1 + int(8 * scale), cx + int(5 * scale), y1 + int(8 * scale)), fill=ink, width=width)
+
+
 def draw_icon_button(
     draw: ImageDraw.ImageDraw,
     xy: tuple[int, int],
@@ -219,48 +273,113 @@ def draw_icon_button(
         draw_gear(draw, box, ink, icon_scale)
     elif icon == "play":
         draw_play(draw, box, ink, icon_scale)
+    elif icon == "pause":
+        draw_pause(draw, box, ink, icon_scale)
+    elif icon == "stop":
+        draw_stop(draw, box, ink, icon_scale)
+    elif icon == "trash":
+        draw_trash(draw, box, ink, icon_scale)
+    elif icon == "timer":
+        draw_timer(draw, box, ink, icon_scale)
 
 
 def draw_collapsed_island_mock(base: Image.Image, xy: tuple[int, int], scale: float = 1.0):
     x, y = xy
-    w, h = int(350 * scale), int(76 * scale)
+    w, h = int(344 * scale), int(60 * scale)
     radius = h // 2
     draw = paste_glass(base, xy, (w, h), radius, (232, 252, 255, 178), (255, 255, 255, 162))
     ink = (19, 81, 89, 232)
     colors = [(255, 96, 106), (255, 204, 83), (76, 220, 151)]
     nums = ["2", "5", "3"]
-    label = font(int(24 * scale))
+    label = font(int(22 * scale))
     for i, (color, num) in enumerate(zip(colors, nums)):
-        cx = x + int((48 + i * 92) * scale)
-        cy = y + int(29 * scale)
-        r = int(9 * scale)
+        cx = x + int((50 + i * 96) * scale)
+        cy = y + int(21 * scale)
+        r = int(8 * scale)
         draw.ellipse((cx, cy, cx + 2 * r, cy + 2 * r), fill=color)
-        draw.text((cx + int(27 * scale), y + int(23 * scale)), num, font=label, fill=ink)
+        draw.text((cx + int(26 * scale), y + int(16 * scale)), num, font=label, fill=ink)
+
+
+def draw_attention_island_mock(base: Image.Image, xy: tuple[int, int], scale: float = 1.0):
+    x, y = xy
+    w, h = int(620 * scale), int(96 * scale)
+    draw = paste_glass(base, xy, (w, h), h // 2, (232, 252, 255, 174), (255, 255, 255, 154))
+    ink = (19, 81, 89, 232)
+    muted = (47, 110, 116, 186)
+    red = (255, 96, 106)
+
+    icon_size = int(46 * scale)
+    icon_x = x + int(30 * scale)
+    icon_y = y + (h - icon_size) // 2
+    draw.ellipse((icon_x, icon_y, icon_x + icon_size, icon_y + icon_size), fill=(255, 96, 106, 54), outline=(255, 255, 255, 128), width=max(1, int(1 * scale)))
+    draw_timer(draw, (icon_x, icon_y, icon_x + icon_size, icon_y + icon_size), ink, scale * 0.88)
+
+    draw.text((x + int(88 * scale), y + int(22 * scale)), "Deepseek 文章", font=font(int(25 * scale)), fill=ink)
+    draw.text((x + int(90 * scale), y + int(55 * scale)), "专注中 · 高优先级", font=font(int(17 * scale)), fill=muted)
+
+    countdown_x = x + w - int(214 * scale)
+    countdown_y = y + int(30 * scale)
+    draw.rounded_rectangle(
+        (countdown_x, countdown_y, countdown_x + int(92 * scale), countdown_y + int(36 * scale)),
+        radius=int(18 * scale),
+        fill=(255, 255, 255, 86),
+        outline=red + (82,),
+        width=max(1, int(1 * scale)),
+    )
+    draw.text((countdown_x + int(17 * scale), countdown_y + int(7 * scale)), "24:59", font=font(int(18 * scale)), fill=ink)
+    draw_icon_button(draw, (x + w - int(104 * scale), y + int(28 * scale)), int(38 * scale), "pause", ink=ink, scale=scale)
+    draw_icon_button(draw, (x + w - int(58 * scale), y + int(28 * scale)), int(38 * scale), "stop", ink=ink, scale=scale)
 
 
 def draw_island_mock(base: Image.Image, xy: tuple[int, int], scale: float = 1.0):
     x, y = xy
-    w, h = int(720 * scale), int(178 * scale)
-    draw = paste_glass(base, xy, (w, h), int(36 * scale), (232, 252, 255, 172), (255, 255, 255, 150))
-    label = font(int(26 * scale))
-    title = font(int(34 * scale))
-    small = font(int(22 * scale))
+    w, h = int(760 * scale), int(168 * scale)
+    draw = paste_glass(base, xy, (w, h), int(34 * scale), (232, 252, 255, 172), (255, 255, 255, 150))
     ink = (19, 81, 89, 232)
     muted = (46, 111, 117, 188)
-    colors = [(255, 96, 106), (255, 204, 83), (76, 220, 151)]
-    nums = ["2", "5", "3"]
-    for i, (color, num) in enumerate(zip(colors, nums)):
-        cx = x + int((44 + i * 92) * scale)
-        cy = y + int(42 * scale)
-        r = int(10 * scale)
-        draw.ellipse((cx, cy, cx + 2 * r, cy + 2 * r), fill=color)
-        draw.text((cx + int(28 * scale), cy - int(8 * scale)), num, font=label, fill=ink)
-    draw.text((x + int(38 * scale), y + int(86 * scale)), "Deepseek 文章", font=title, fill=ink)
-    draw.text((x + int(40 * scale), y + int(130 * scale)), "当前任务 · 25 分钟专注", font=small, fill=muted)
-    for i, icon in enumerate(["plus", "check", "pin"]):
-        bx = x + w - int((176 - i * 58) * scale)
-        by = y + int(92 * scale)
-        draw_icon_button(draw, (bx, by), int(42 * scale), icon, ink=ink, scale=scale)
+    task_font = font(int(22 * scale))
+    meta_font = font(int(15 * scale))
+    tasks = [
+        ((255, 96, 106), "Deepseek 文章", "当前", "剩 24:59"),
+        ((255, 96, 106), "产品宣传图", "", "今天 18:00"),
+        ((255, 204, 83), "同步 Apple 提醒事项", "", "25m"),
+    ]
+    row_x = x + int(20 * scale)
+    row_w = w - int(94 * scale)
+    row_h = int(40 * scale)
+    row_y = y + int(18 * scale)
+    for color, title, badge, meta in tasks:
+        draw.rounded_rectangle(
+            (row_x, row_y, row_x + row_w, row_y + row_h),
+            radius=row_h // 2,
+            fill=(255, 255, 255, 72),
+            outline=color + (40,),
+            width=max(1, int(1 * scale)),
+        )
+        dot_r = int(5 * scale)
+        dot_x = row_x + int(18 * scale)
+        dot_y = row_y + row_h // 2 - dot_r
+        draw.ellipse((dot_x, dot_y, dot_x + dot_r * 2, dot_y + dot_r * 2), fill=color)
+        draw.text((row_x + int(38 * scale), row_y + int(8 * scale)), title, font=task_font, fill=ink)
+        text_cursor = row_x + int(38 * scale) + int(draw.textlength(title, font=task_font)) + int(12 * scale)
+        if badge:
+            badge_w = int(44 * scale)
+            draw.rounded_rectangle(
+                (text_cursor, row_y + int(10 * scale), text_cursor + badge_w, row_y + int(30 * scale)),
+                radius=int(10 * scale),
+                fill=(255, 255, 255, 82),
+                outline=(255, 255, 255, 96),
+            )
+            draw.text((text_cursor + int(8 * scale), row_y + int(12 * scale)), badge, font=font(int(12 * scale)), fill=muted)
+        draw.text((row_x + row_w - int(182 * scale), row_y + int(11 * scale)), meta, font=meta_font, fill=muted)
+        draw_icon_button(draw, (row_x + row_w - int(76 * scale), row_y + int(6 * scale)), int(28 * scale), "check", ink=ink, scale=scale * 0.82)
+        draw_icon_button(draw, (row_x + row_w - int(40 * scale), row_y + int(6 * scale)), int(28 * scale), "trash", ink=ink, scale=scale * 0.82)
+        row_y += row_h + int(8 * scale)
+
+    divider_x = x + w - int(58 * scale)
+    draw.rounded_rectangle((divider_x, y + int(32 * scale), divider_x + max(1, int(1 * scale)), y + h - int(32 * scale)), radius=1, fill=(255, 255, 255, 82))
+    draw_icon_button(draw, (x + w - int(50 * scale), y + int(40 * scale)), int(38 * scale), "plus", ink=ink, scale=scale)
+    draw_icon_button(draw, (x + w - int(50 * scale), y + int(90 * scale)), int(38 * scale), "pin", ink=ink, scale=scale)
 
 
 def draw_task_panel_mock(base: Image.Image, xy: tuple[int, int], size: tuple[int, int], scale: float = 1.0):
@@ -269,28 +388,81 @@ def draw_task_panel_mock(base: Image.Image, xy: tuple[int, int], size: tuple[int
     draw = paste_glass(base, xy, size, int(34 * scale), (235, 252, 255, 168), (255, 255, 255, 136))
     ink = (20, 82, 90, 232)
     muted = (53, 119, 124, 185)
-    draw_icon(base, (x + int(34 * scale), y + int(30 * scale)), int(64 * scale))
-    draw.text((x + int(112 * scale), y + int(35 * scale)), "任务岛", font=font(int(38 * scale)), fill=ink)
-    draw.text((x + int(114 * scale), y + int(82 * scale)), "全部任务 · 今天 · 高优 · 回顾", font=font(int(23 * scale)), fill=muted)
-    draw_icon_button(draw, (x + w - int(88 * scale), y + int(36 * scale)), int(44 * scale), "gear", ink=ink, scale=scale)
-    draw_icon_button(draw, (x + w - int(140 * scale), y + int(36 * scale)), int(44 * scale), "pin", ink=ink, scale=scale)
+    margin = int(24 * scale)
+    content_right = x + w - margin
+    draw_icon(base, (x + margin, y + int(22 * scale)), int(50 * scale))
+    draw.text((x + int(82 * scale), y + int(24 * scale)), "任务岛", font=font(int(30 * scale)), fill=ink)
+    draw.text((x + int(84 * scale), y + int(62 * scale)), "全部任务 · 当前专注 · 快速新增", font=font(int(17 * scale)), fill=muted)
+    draw_icon_button(draw, (content_right - int(86 * scale), y + int(28 * scale)), int(38 * scale), "pin", ink=ink, scale=scale)
+    draw_icon_button(draw, (content_right - int(40 * scale), y + int(28 * scale)), int(38 * scale), "gear", ink=ink, scale=scale)
+
+    cursor_y = y + int(94 * scale)
+    add_h = int(48 * scale)
+    if cursor_y + add_h < y + h - int(28 * scale):
+        draw.rounded_rectangle((x + margin, cursor_y, content_right, cursor_y + add_h), radius=int(16 * scale), fill=(255, 255, 255, 92), outline=(255, 255, 255, 126))
+        draw.text((x + margin + int(18 * scale), cursor_y + int(13 * scale)), "+  快速新增任务", font=font(int(20 * scale)), fill=muted)
+        for i, (label, color) in enumerate([("高", (255, 96, 106)), ("中", (255, 204, 83)), ("低", (76, 220, 151))]):
+            px = content_right - int((150 - i * 48) * scale)
+            draw.rounded_rectangle((px, cursor_y + int(11 * scale), px + int(38 * scale), cursor_y + int(35 * scale)), radius=int(12 * scale), fill=color + (42,), outline=color + (110,))
+            draw.text((px + int(11 * scale), cursor_y + int(5 * scale)), label, font=font(int(17 * scale)), fill=ink)
+        cursor_y += add_h + int(10 * scale)
+
+    focus_h = int(56 * scale)
+    if cursor_y + focus_h < y + h - int(78 * scale):
+        draw.rounded_rectangle((x + margin, cursor_y, content_right, cursor_y + focus_h), radius=int(18 * scale), fill=(255, 255, 255, 86), outline=(255, 255, 255, 118))
+        icon_size = int(32 * scale)
+        icon_x = x + margin + int(14 * scale)
+        icon_y = cursor_y + (focus_h - icon_size) // 2
+        draw.ellipse((icon_x, icon_y, icon_x + icon_size, icon_y + icon_size), fill=(76, 220, 151, 62), outline=(255, 255, 255, 120))
+        draw_timer(draw, (icon_x, icon_y, icon_x + icon_size, icon_y + icon_size), ink, scale * 0.68)
+        draw.text((icon_x + int(45 * scale), cursor_y + int(10 * scale)), "Deepseek 文章", font=font(int(19 * scale)), fill=ink)
+        draw.text((icon_x + int(46 * scale), cursor_y + int(34 * scale)), "专注中，剩余 24:59", font=font(int(14 * scale)), fill=muted)
+        draw_icon_button(draw, (content_right - int(42 * scale), cursor_y + int(11 * scale)), int(34 * scale), "pause", ink=ink, scale=scale * 0.85)
+        cursor_y += focus_h + int(10 * scale)
+
+    chips = [("全部", True), ("今天", False), ("高优", False), ("回顾", False)]
+    chip_x = x + margin
+    chip_h = int(34 * scale)
+    if cursor_y + chip_h < y + h - int(64 * scale):
+        for label, selected in chips:
+            chip_w = int((54 + len(label) * 14) * scale)
+            fill = (255, 255, 255, 120) if selected else (255, 255, 255, 62)
+            draw.rounded_rectangle((chip_x, cursor_y, chip_x + chip_w, cursor_y + chip_h), radius=chip_h // 2, fill=fill, outline=(255, 255, 255, 112))
+            draw.text((chip_x + int(16 * scale), cursor_y + int(7 * scale)), label, font=font(int(15 * scale)), fill=ink if selected else muted)
+            chip_x += chip_w + int(8 * scale)
+        cursor_y += chip_h + int(8 * scale)
+
+    search_h = int(36 * scale)
+    if cursor_y + search_h < y + h - int(58 * scale):
+        draw.rounded_rectangle((x + margin, cursor_y, content_right, cursor_y + search_h), radius=int(14 * scale), fill=(255, 255, 255, 66), outline=(255, 255, 255, 94))
+        draw.text((x + margin + int(16 * scale), cursor_y + int(8 * scale)), "搜索标题、备注、标签或项目", font=font(int(14 * scale)), fill=muted)
+        cursor_y += search_h + int(8 * scale)
 
     rows = [
-        ("#FF606A", "高", "Deepseek 文章", "25 分钟专注"),
-        ("#FFCC53", "中", "设置明天提醒", "明天 10:00"),
-        ("#4CDC97", "低", "导出 Markdown 备份", "无日期"),
+        ((255, 96, 106), "高优先级", "Deepseek 文章", "当前 · 今天 18:00", True),
+        ((255, 96, 106), "高优先级", "产品宣传图", "设为当前 · 25m", False),
+        ((255, 204, 83), "中优先级", "同步提醒事项", "设为当前 · 明天 10:00", False),
+        ((76, 220, 151), "低优先级", "导出 Markdown 备份", "设为当前 · 无日期", False),
     ]
-    row_y = y + int(130 * scale)
-    for color_hex, pri, title, meta in rows:
-        row_h = int(70 * scale)
-        draw.rounded_rectangle((x + int(32 * scale), row_y, x + w - int(32 * scale), row_y + row_h), radius=int(22 * scale), fill=(255, 255, 255, 98), outline=(255, 255, 255, 136))
-        color = tuple(int(color_hex[i : i + 2], 16) for i in (1, 3, 5))
-        draw.ellipse((x + int(54 * scale), row_y + int(24 * scale), x + int(76 * scale), row_y + int(46 * scale)), fill=color)
-        draw.text((x + int(92 * scale), row_y + int(19 * scale)), title, font=font(int(27 * scale)), fill=ink)
-        draw.text((x + w - int(230 * scale), row_y + int(21 * scale)), f"{pri} · {meta}", font=font(int(22 * scale)), fill=muted)
-        if row_y == y + int(130 * scale):
-            draw_icon_button(draw, (x + w - int(84 * scale), row_y + int(14 * scale)), int(42 * scale), "play", ink=ink, scale=scale)
-        row_y += row_h + int(18 * scale)
+    row_h = int(48 * scale)
+    last_group = ""
+    for color, group, title, meta, current in rows:
+        if cursor_y + row_h > y + h - int(18 * scale):
+            break
+        if group != last_group and cursor_y + int(20 * scale) + row_h < y + h - int(18 * scale):
+            draw.text((x + margin + int(4 * scale), cursor_y), group, font=font(int(14 * scale)), fill=muted)
+            cursor_y += int(21 * scale)
+            last_group = group
+        draw.rounded_rectangle((x + margin, cursor_y, content_right, cursor_y + row_h), radius=int(16 * scale), fill=(255, 255, 255, 84 if current else 62), outline=(255, 255, 255, 112))
+        dot_r = int(5 * scale)
+        draw.ellipse((x + margin + int(16 * scale), cursor_y + int(19 * scale), x + margin + int(16 * scale) + dot_r * 2, cursor_y + int(19 * scale) + dot_r * 2), fill=color)
+        draw.text((x + margin + int(36 * scale), cursor_y + int(7 * scale)), title, font=font(int(18 * scale)), fill=ink)
+        draw.text((x + margin + int(36 * scale), cursor_y + int(29 * scale)), meta, font=font(int(12 * scale)), fill=muted)
+        draw_icon_button(draw, (content_right - int(150 * scale), cursor_y + int(9 * scale)), int(30 * scale), "timer", ink=ink, scale=scale * 0.72)
+        draw_icon_button(draw, (content_right - int(112 * scale), cursor_y + int(9 * scale)), int(30 * scale), "play", ink=ink, scale=scale * 0.72)
+        draw_icon_button(draw, (content_right - int(74 * scale), cursor_y + int(9 * scale)), int(30 * scale), "check", ink=ink, scale=scale * 0.72)
+        draw_icon_button(draw, (content_right - int(36 * scale), cursor_y + int(9 * scale)), int(30 * scale), "trash", ink=ink, scale=scale * 0.72)
+        cursor_y += row_h + int(8 * scale)
 
 
 def draw_settings_slice(base: Image.Image, xy: tuple[int, int], size: tuple[int, int], scale: float = 1.0):
@@ -356,10 +528,10 @@ def render_landscape():
             chip_y += 62
         chip_x = draw_chip(draw, (chip_x, chip_y), text)
 
-    draw_collapsed_island_mock(img, (1052, 102), 1.0)
-    draw_island_mock(img, (940, 224), 1.08)
-    draw_task_panel_mock(img, (940, 472), (800, 398), 0.92)
-    draw_settings_slice(img, (1242, 706), (470, 220), 0.82)
+    draw_collapsed_island_mock(img, (1118, 100), 1.0)
+    draw_attention_island_mock(img, (1010, 204), 1.0)
+    draw_island_mock(img, (902, 336), 1.02)
+    draw_task_panel_mock(img, (930, 572), (800, 360), 0.86)
     draw.text((135, 960), "轻量聚焦任务面板 · macOS 常驻小工具 · 可打包安装", font=font(28), fill=(214, 244, 243, 204))
     OUT.mkdir(parents=True, exist_ok=True)
     img.save(OUT / "taskisland-poster-16x9.png")
@@ -391,9 +563,10 @@ def render_portrait():
         (224, 248, 247, 224),
         12,
     )
-    draw_collapsed_island_mock(img, (112, 772), 1.12)
-    draw_island_mock(img, (112, 884), 1.12)
-    draw_task_panel_mock(img, (112, 1110), (856, 300), 0.75)
+    draw_collapsed_island_mock(img, (112, 756), 1.06)
+    draw_attention_island_mock(img, (112, 850), 0.95)
+    draw_island_mock(img, (112, 970), 0.88)
+    draw_task_panel_mock(img, (112, 1134), (856, 284), 0.70)
     OUT.mkdir(parents=True, exist_ok=True)
     img.save(OUT / "taskisland-poster-3x4.png")
 
@@ -455,13 +628,14 @@ def draw_setting_card(
 
 def render_screenshot_floating_island():
     img, draw = screenshot_canvas("悬浮岛", "收起时只留优先级数量，悬停后展开当前任务和快速操作。")
-    draw_collapsed_island_mock(img, (160, 270), 1.25)
-    draw_island_mock(img, (160, 440), 1.28)
-    draw_task_panel_mock(img, (885, 255), (570, 410), 0.78)
-    x = draw_label(draw, (160, 720), "小胶囊：高 / 中 / 低数量")
-    x = draw_label(draw, (x, 720), "展开态：最多 3 条任务")
-    draw_label(draw, (x, 720), "加号 / 完成 / 固定")
-    draw.text((920, 710), "点击悬浮岛打开完整任务面板；固定后可以常驻查看。", font=font(28), fill=(226, 248, 247, 224))
+    draw_collapsed_island_mock(img, (150, 255), 1.18)
+    draw_attention_island_mock(img, (150, 380), 1.0)
+    draw_island_mock(img, (150, 535), 1.05)
+    draw_task_panel_mock(img, (900, 240), (570, 470), 0.74)
+    x = draw_label(draw, (150, 770), "小胶囊：高 / 中 / 低数量")
+    x = draw_label(draw, (x, 770), "中胶囊：专注 / 提醒")
+    draw_label(draw, (x, 770), "展开态：任务行操作")
+    draw.text((920, 760), "点击空白区域打开完整任务面板；固定后可以常驻查看。", font=font(28), fill=(226, 248, 247, 224))
     SCREENSHOTS.mkdir(parents=True, exist_ok=True)
     img.save(SCREENSHOTS / "01-floating-island.png")
 
