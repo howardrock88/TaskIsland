@@ -685,7 +685,7 @@ def render_landscape():
     draw.text((132, 326), "让重要的事，始终在眼前", font=font(62), fill=headline_ink)
     draw_wrapped(
         draw,
-        "任务岛把待办、优先级和专注计时悬浮在桌面上方。少打开一个窗口，多推进一件事。",
+        "数字岛看数量，专注岛守时间，行动岛处理任务。",
         (136, 458),
         700,
         font(34),
@@ -694,7 +694,7 @@ def render_landscape():
     )
     chip_y = 670
     chip_x = 136
-    for text in ["液态玻璃悬浮岛", "快速新增", "专注计时", "Apple 提醒事项"]:
+    for text in ["数字岛", "专注岛", "行动岛", "快速新增"]:
         if chip_x + chip_width(text) > 830:
             chip_x = 136
             chip_y += 62
@@ -732,7 +732,7 @@ def render_portrait():
     draw.text((88, 456), "让重要的事，始终在眼前", font=font(52), fill=headline_ink)
     draw_wrapped(
         draw,
-        "从数字岛到行动岛，任务、提醒和专注都留在桌面最顺手的位置。",
+        "数字岛看数量，专注岛守时间，行动岛处理任务。",
         (92, 552),
         846,
         font(31),
