@@ -400,23 +400,35 @@ struct MenuBarWindowView: View {
                 Spacer(minLength: 8)
 
                 if let focusTask {
-                    if !isActivelyFocusing, store.incompleteCount > 1 {
+                    HStack(spacing: 6) {
+                        if !isActivelyFocusing, store.incompleteCount > 1 {
+                            Button {
+                                store.advanceCurrent()
+                            } label: {
+                                Label("下一个", systemImage: "arrow.right.circle")
+                            }
+                            .buttonStyle(CompactGlassButtonStyle())
+                            .help("切到下一个当前任务")
+                        }
+
                         Button {
-                            store.advanceCurrent()
+                            store.toggleFocus(focusTask)
                         } label: {
-                            Label("下一个", systemImage: "arrow.right.circle")
+                            Label(focusTask.focusStartedAt == nil ? "开始" : "暂停", systemImage: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill")
                         }
                         .buttonStyle(CompactGlassButtonStyle())
-                        .help("切到下一个当前任务")
-                    }
+                        .help(focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注")
 
-                    Button {
-                        store.toggleFocus(focusTask)
-                    } label: {
-                        Label(focusTask.focusStartedAt == nil ? "开始" : "暂停", systemImage: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill")
+                        if focusTask.focusStartedAt != nil || focusTask.focusSeconds > 0 {
+                            Button {
+                                store.stopFocus(focusTask)
+                            } label: {
+                                Label("停止", systemImage: "stop.fill")
+                            }
+                            .buttonStyle(CompactGlassButtonStyle())
+                            .help("停止专注")
+                        }
                     }
-                    .buttonStyle(CompactGlassButtonStyle())
-                    .help(focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注")
                 }
             }
             .padding(.horizontal, 12)

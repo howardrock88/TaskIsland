@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import SwiftUI
 import TaskIslandCore
 
@@ -24,7 +25,7 @@ struct TaskRowView: View {
     var body: some View {
         let tint = task.priority.tintColor(settings: settings)
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Circle()
                     .fill(tint)
                     .frame(width: 8, height: 8)
@@ -70,45 +71,9 @@ struct TaskRowView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: 6)
+                Spacer(minLength: 2)
 
-                Button {
-                    toggleDetails()
-                } label: {
-                    Image(systemName: isShowingDetails ? "chevron.up" : "chevron.down")
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
-                .help(isShowingDetails ? "收起详情" : "展开详情")
-
-                Button {
-                    store.toggleFocus(task)
-                } label: {
-                    Image(systemName: task.focusStartedAt == nil ? "timer" : "pause.fill")
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.48, blue: 0.92)))
-                .help(task.focusStartedAt == nil ? "开始专注" : "暂停专注")
-
-                priorityMenu
-
-                Button {
-                    store.complete(task)
-                } label: {
-                    Image(systemName: "checkmark")
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.68, blue: 0.34)))
-                .help("完成任务")
-
-                Button {
-                    store.delete(task)
-                } label: {
-                    Image(systemName: "trash")
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
-                .help("删除任务")
+                rowActions
             }
 
             if isShowingDetails {
@@ -153,6 +118,11 @@ struct TaskRowView: View {
                 }
                 .onSubmit(commitTitleEdit)
                 .onExitCommand(perform: cancelTitleEdit)
+                .background {
+                    TitleEditOutsideClickMonitor {
+                        commitTitleEdit()
+                    }
+                }
                 .onChange(of: isTitleFieldFocused) { _, isFocused in
                     if !isFocused, isEditingTitle {
                         commitTitleEdit()
@@ -185,6 +155,49 @@ struct TaskRowView: View {
                 systemName: task.focusStartedAt == nil ? "timer" : "timer.circle.fill"
             )
         }
+    }
+
+    private var rowActions: some View {
+        HStack(spacing: 4) {
+            Button {
+                toggleDetails()
+            } label: {
+                Image(systemName: isShowingDetails ? "chevron.up" : "chevron.down")
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
+            .help(isShowingDetails ? "收起详情" : "展开详情")
+
+            Button {
+                store.toggleFocus(task)
+            } label: {
+                Image(systemName: task.focusStartedAt == nil ? "timer" : "pause.fill")
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.48, blue: 0.92)))
+            .help(task.focusStartedAt == nil ? "开始专注" : "暂停专注")
+
+            priorityMenu
+
+            Button {
+                store.complete(task)
+            } label: {
+                Image(systemName: "checkmark")
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.68, blue: 0.34)))
+            .help("完成任务")
+
+            Button {
+                store.delete(task)
+            } label: {
+                Image(systemName: "trash")
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
+            .help("删除任务")
+        }
+        .fixedSize()
     }
 
     private var todayQueueButton: some View {
@@ -558,6 +571,8 @@ struct TaskRowView: View {
     }
 
     private func commitTitleEdit() {
+        guard isEditingTitle else { return }
+
         let trimmedTitle = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedTitle.isEmpty {
             titleDraft = task.title
@@ -573,6 +588,8 @@ struct TaskRowView: View {
     }
 
     private func cancelTitleEdit() {
+        guard isEditingTitle else { return }
+
         titleDraft = task.title
         withAnimation(.easeInOut(duration: 0.12)) {
             isEditingTitle = false
@@ -641,8 +658,8 @@ struct TaskRowView: View {
                 Text(task.priority.shortTitle)
                     .font(.system(size: 11, weight: .semibold))
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
             .background(.ultraThinMaterial, in: Capsule())
         .overlay {
             Capsule()
@@ -669,5 +686,76 @@ private struct TaskRowIconButtonStyle: ButtonStyle {
             }
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
             .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+private struct TitleEditOutsideClickMonitor: NSViewRepresentable {
+    let onOutsideClick: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onOutsideClick: onOutsideClick)
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        context.coordinator.view = view
+        context.coordinator.installMonitor()
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        context.coordinator.view = nsView
+        context.coordinator.onOutsideClick = onOutsideClick
+        context.coordinator.installMonitor()
+    }
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        coordinator.removeMonitor()
+    }
+
+    @MainActor
+    final class Coordinator {
+        weak var view: NSView?
+        var onOutsideClick: () -> Void
+        private var monitor: Any?
+
+        init(onOutsideClick: @escaping () -> Void) {
+            self.onOutsideClick = onOutsideClick
+        }
+
+        func installMonitor() {
+            guard monitor == nil else { return }
+
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+                let windowNumber = event.window?.windowNumber
+                let location = event.locationInWindow
+                Task { @MainActor [weak self] in
+                    self?.handleClick(windowNumber: windowNumber, location: location)
+                }
+                return event
+            }
+        }
+
+        private func handleClick(windowNumber: Int?, location: NSPoint) {
+            guard let view else { return }
+
+            if let window = view.window, window.windowNumber == windowNumber {
+                let localLocation = view.convert(location, from: nil)
+                guard view.bounds.contains(localLocation) else {
+                    onOutsideClick()
+                    return
+                }
+            } else {
+                onOutsideClick()
+            }
+        }
+
+        func removeMonitor() {
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+        }
+
     }
 }
