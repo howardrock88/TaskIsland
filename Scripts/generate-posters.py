@@ -45,6 +45,42 @@ def gradient(size: tuple[int, int], top: tuple[int, int, int], bottom: tuple[int
     return img.convert("RGBA")
 
 
+def multistop_gradient(size: tuple[int, int], stops: list[tuple[float, tuple[int, int, int]]]) -> Image.Image:
+    w, h = size
+    img = Image.new("RGB", size)
+    draw = ImageDraw.Draw(img)
+    stops = sorted(stops, key=lambda item: item[0])
+
+    for y in range(h):
+        t = y / max(h - 1, 1)
+        lower = stops[0]
+        upper = stops[-1]
+        for index in range(len(stops) - 1):
+            if stops[index][0] <= t <= stops[index + 1][0]:
+                lower = stops[index]
+                upper = stops[index + 1]
+                break
+
+        span = max(upper[0] - lower[0], 0.001)
+        local_t = min(max((t - lower[0]) / span, 0), 1)
+        color = tuple(lerp(lower[1][i], upper[1][i], local_t) for i in range(3))
+        draw.line([(0, y), (w, y)], fill=color)
+
+    return img.convert("RGBA")
+
+
+def poster_background(size: tuple[int, int]) -> Image.Image:
+    return multistop_gradient(
+        size,
+        [
+            (0.00, (211, 247, 245)),
+            (0.22, (190, 241, 237)),
+            (0.56, (51, 139, 137)),
+            (1.00, (9, 45, 59)),
+        ],
+    )
+
+
 def rounded_mask(size: tuple[int, int], radius: int) -> Image.Image:
     mask = Image.new("L", size, 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, size[0] - 1, size[1] - 1), radius=radius, fill=255)
@@ -565,31 +601,35 @@ def draw_settings_slice(base: Image.Image, xy: tuple[int, int], size: tuple[int,
 
 def render_landscape():
     size = (1920, 1080)
-    img = gradient(size, (23, 78, 92), (11, 42, 54))
+    img = poster_background(size)
     overlay = Image.new("RGBA", size, (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    od.ellipse((-240, -280, 760, 660), fill=(107, 223, 229, 68))
-    od.ellipse((1260, -160, 2200, 700), fill=(122, 255, 199, 54))
-    od.ellipse((620, 680, 1560, 1400), fill=(255, 211, 113, 34))
+    od.ellipse((-260, -300, 760, 700), fill=(255, 255, 255, 70))
+    od.ellipse((760, -220, 2100, 760), fill=(87, 219, 220, 48))
+    od.ellipse((620, 650, 1560, 1400), fill=(20, 72, 80, 60))
+    od.ellipse((1040, 420, 2140, 1280), fill=(122, 255, 199, 42))
     overlay = overlay.filter(ImageFilter.GaussianBlur(82))
     img.alpha_composite(overlay)
 
     draw = ImageDraw.Draw(img)
+    brand_ink = (13, 78, 88, 246)
+    muted_ink = (35, 112, 119, 214)
+    headline_ink = (9, 69, 80, 248)
+    body_ink = (25, 91, 100, 226)
     draw_icon(img, (126, 118), 138)
-    draw.text((292, 125), "任务岛", font=font(82), fill=(250, 255, 255, 250))
-    draw.text((296, 218), "TaskIsland", font=font(32), fill=(204, 244, 242, 214))
-    draw.text((132, 326), "让下一件事，", font=font(68), fill=(250, 255, 255, 250))
-    draw.text((132, 414), "始终在眼前。", font=font(68), fill=(250, 255, 255, 250))
+    draw.text((292, 125), "任务岛", font=font(82), fill=brand_ink)
+    draw.text((296, 218), "TaskIsland", font=font(32), fill=muted_ink)
+    draw.text((132, 326), "让重要的事，始终在眼前", font=font(62), fill=headline_ink)
     draw_wrapped(
         draw,
         "任务岛把待办、优先级和专注计时悬浮在桌面上方。少打开一个窗口，多推进一件事。",
-        (136, 534),
+        (136, 458),
         700,
         font(34),
-        (224, 248, 247, 224),
+        body_ink,
         12,
     )
-    chip_y = 720
+    chip_y = 670
     chip_x = 136
     for text in ["液态玻璃悬浮岛", "快速新增", "专注计时", "Apple 提醒事项"]:
         if chip_x + chip_width(text) > 830:
@@ -608,28 +648,32 @@ def render_landscape():
 
 def render_portrait():
     size = (1080, 1440)
-    img = gradient(size, (26, 91, 100), (11, 47, 60))
+    img = poster_background(size)
     overlay = Image.new("RGBA", size, (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    od.ellipse((-220, -160, 760, 820), fill=(100, 222, 230, 70))
-    od.ellipse((520, 130, 1340, 960), fill=(128, 255, 204, 52))
-    od.ellipse((-60, 960, 980, 1660), fill=(255, 211, 113, 34))
+    od.ellipse((-220, -190, 760, 840), fill=(255, 255, 255, 72))
+    od.ellipse((420, 80, 1340, 960), fill=(88, 222, 221, 46))
+    od.ellipse((-60, 940, 980, 1660), fill=(14, 65, 76, 58))
+    od.ellipse((420, 820, 1360, 1520), fill=(122, 255, 199, 34))
     overlay = overlay.filter(ImageFilter.GaussianBlur(74))
     img.alpha_composite(overlay)
 
     draw = ImageDraw.Draw(img)
+    brand_ink = (13, 78, 88, 248)
+    muted_ink = (35, 112, 119, 216)
+    headline_ink = (9, 69, 80, 248)
+    body_ink = (25, 91, 100, 226)
     draw_icon(img, (88, 84), 140)
-    draw.text((88, 262), "任务岛", font=font(84), fill=(250, 255, 255, 252))
-    draw.text((92, 356), "TaskIsland", font=font(34), fill=(209, 246, 244, 218))
-    draw.text((88, 456), "让下一件事，", font=font(56), fill=(250, 255, 255, 248))
-    draw.text((88, 528), "始终在眼前。", font=font(56), fill=(250, 255, 255, 248))
+    draw.text((88, 262), "任务岛", font=font(84), fill=brand_ink)
+    draw.text((92, 356), "TaskIsland", font=font(34), fill=muted_ink)
+    draw.text((88, 456), "让重要的事，始终在眼前", font=font(52), fill=headline_ink)
     draw_wrapped(
         draw,
         "从小胶囊到完整面板，任务、提醒和专注都留在桌面最顺手的位置。",
-        (92, 624),
+        (92, 552),
         846,
         font(31),
-        (224, 248, 247, 224),
+        body_ink,
         12,
     )
     paste_ui_snapshot(img, "task-panel.png", (520, 706), 1.02)
