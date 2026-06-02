@@ -18,6 +18,26 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
 - **Installable builds**: scripts generate `.app`, `.pkg`, and `.dmg` packages for `/Applications/任务岛.app`.
 
+## Release Notes
+
+### 0.1.1 - 2026-06-02
+
+- Added a shared version file used by the `.app`, `.pkg`, and `.dmg` packaging scripts.
+- Unified the three island state names across README copy and posters: Number Island, Focus Island, and Action Island.
+- Switched README interface images to actual UI renders and removed subtask claims from public documentation.
+
+### 0.1.0 - 2026-06-01
+
+- First usable local build with the floating island, task panel, quick add, focus timer, reminders, import / export, and macOS packaging scripts.
+
+## Versioning Policy
+
+Every user-visible change to features, UI, documentation previews, or installers should update:
+
+- The root `VERSION` file.
+- The release notes in README.
+- Fresh installer builds, with matching `.dmg` and `.pkg` files uploaded to GitHub Releases.
+
 ## Interface Tour
 
 ### Floating Island
@@ -101,7 +121,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.0.pkg
+open dist/TaskIsland-0.1.1.pkg
 ```
 
 Build the `.dmg` image:
@@ -109,7 +129,7 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.0.dmg
+open dist/TaskIsland-0.1.1.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.

@@ -18,6 +18,26 @@
 - **系统集成**：支持 Apple 提醒事项导入/导出、本地通知、`taskisland://` URL Scheme、登录启动安装配置。
 - **可打包安装**：提供 `.app`、`.pkg`、`.dmg` 打包脚本，可安装到 `/Applications/任务岛.app`。
 
+## 更新说明
+
+### 0.1.1 - 2026-06-02
+
+- 建立统一版本文件，`.app`、`.pkg` 和 `.dmg` 打包脚本都会读取同一个版本号。
+- README 和宣传海报统一三态命名：数字岛、专注岛、行动岛。
+- README 界面展示图改为使用真实 UI 渲染截图，并移除未作为公开能力展示的子任务描述。
+
+### 0.1.0 - 2026-06-01
+
+- 第一个可用本地构建版，包含悬浮岛、任务面板、快速新增、专注计时、提醒、导入导出和 macOS 安装包脚本。
+
+## 版本管理约定
+
+每次对功能、界面、文档展示或安装包产生用户可见影响的变更，都需要同步完成：
+
+- 更新根目录 `VERSION`。
+- 在 README 的“更新说明”里新增对应版本记录。
+- 重新生成安装包，并在 GitHub Release 上传对应版本的 `.dmg` 和 `.pkg`。
+
 ## 界面展示
 
 ### 悬浮岛
@@ -101,7 +121,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.0.pkg
+open dist/TaskIsland-0.1.1.pkg
 ```
 
 构建 `.dmg`：
@@ -109,7 +129,7 @@ open dist/TaskIsland-0.1.0.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.0.dmg
+open dist/TaskIsland-0.1.1.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

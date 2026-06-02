@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
 APP_DISPLAY_NAME="任务岛"
 APP_DIR="$ROOT_DIR/.build/package/$APP_DISPLAY_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
@@ -36,7 +37,7 @@ if [[ -f "$ICON_SOURCE" ]]; then
     iconutil -c icns "$ICONSET_DIR" -o "$RESOURCES_DIR/AppIcon.icns"
 fi
 
-cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
+cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -60,9 +61,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>$VERSION</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$VERSION</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
