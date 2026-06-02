@@ -22,6 +22,11 @@ struct TaskRowView: View {
 
     let task: TaskItem
 
+    init(task: TaskItem, initiallyShowingDetails: Bool = false) {
+        self.task = task
+        _isShowingDetails = State(initialValue: initiallyShowingDetails)
+    }
+
     var body: some View {
         let tint = task.priority.tintColor(settings: settings)
         VStack(alignment: .leading, spacing: 8) {

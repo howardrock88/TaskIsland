@@ -6,10 +6,25 @@ struct QuickAddView: View {
 
     let onSubmit: (String, TaskPriority) -> Void
     let onCancel: () -> Void
+    private let shouldAutoFocus: Bool
 
     @FocusState private var isFocused: Bool
     @State private var title = ""
     @State private var selectedPriority: TaskPriority = .medium
+
+    init(
+        initialTitle: String = "",
+        initialPriority: TaskPriority = .medium,
+        shouldAutoFocus: Bool = true,
+        onSubmit: @escaping (String, TaskPriority) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.onSubmit = onSubmit
+        self.onCancel = onCancel
+        self.shouldAutoFocus = shouldAutoFocus
+        _title = State(initialValue: initialTitle)
+        _selectedPriority = State(initialValue: initialPriority)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -88,7 +103,9 @@ struct QuickAddView: View {
         }
         .preferredColorScheme(settings.darkGlassMode ? .dark : nil)
         .onAppear {
-            isFocused = true
+            if shouldAutoFocus {
+                isFocused = true
+            }
         }
         .onExitCommand(perform: onCancel)
     }

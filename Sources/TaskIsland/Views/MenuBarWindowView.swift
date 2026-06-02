@@ -18,6 +18,7 @@ struct MenuBarWindowView: View {
 
     @ObservedObject var panelState: TaskPanelState
     private let remindersBridge = AppleRemindersBridge()
+    private let initialSettingsAnchor: TaskPanelSettingsAnchor?
 
     let onDismiss: () -> Void
     let onPinChanged: (Bool) -> Void
@@ -26,16 +27,22 @@ struct MenuBarWindowView: View {
 
     init(
         panelState: TaskPanelState,
+        initialShowingSettings: Bool = false,
+        initialTaskViewMode: TaskViewMode = .all,
+        initialSettingsAnchor: TaskPanelSettingsAnchor? = nil,
         onDismiss: @escaping () -> Void = {},
         onPinChanged: @escaping (Bool) -> Void = { _ in },
         onDragChanged: @escaping (CGSize) -> Void = { _ in },
         onDragEnded: @escaping () -> Void = {}
     ) {
         self.panelState = panelState
+        self.initialSettingsAnchor = initialSettingsAnchor
         self.onDismiss = onDismiss
         self.onPinChanged = onPinChanged
         self.onDragChanged = onDragChanged
         self.onDragEnded = onDragEnded
+        _isShowingSettings = State(initialValue: initialShowingSettings)
+        _taskViewMode = State(initialValue: initialTaskViewMode)
     }
 
     var body: some View {
@@ -89,18 +96,44 @@ struct MenuBarWindowView: View {
         VStack(spacing: 12) {
             settingsHeader
 
-            ScrollView {
-                VStack(spacing: 12) {
-                    settingsDisplaySection
-                    settingsFocusSection
-                    settingsPrioritySection
-                    settingsCapsuleSection
-                    settingsShortcutSection
-                    settingsActionsSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 12) {
+                        settingsDisplaySection
+                            .id(TaskPanelSettingsAnchor.display)
+                        settingsFocusSection
+                            .id(TaskPanelSettingsAnchor.focus)
+                        settingsPrioritySection
+                            .id(TaskPanelSettingsAnchor.priority)
+                        settingsCapsuleSection
+                            .id(TaskPanelSettingsAnchor.capsule)
+                        settingsShortcutSection
+                            .id(TaskPanelSettingsAnchor.shortcuts)
+                        settingsActionsSection
+                            .id(TaskPanelSettingsAnchor.actions)
+                    }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
+                .frame(maxHeight: .infinity)
+                .onAppear {
+                    guard initialSettingsAnchor != nil else { return }
+                    DispatchQueue.main.async {
+                        scrollToInitialSettingsAnchor(proxy)
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                        scrollToInitialSettingsAnchor(proxy)
+                    }
+                }
             }
-            .frame(maxHeight: .infinity)
+        }
+    }
+
+    private func scrollToInitialSettingsAnchor(_ proxy: ScrollViewProxy) {
+        guard let initialSettingsAnchor else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            proxy.scrollTo(initialSettingsAnchor, anchor: .top)
         }
     }
 
@@ -1454,7 +1487,7 @@ struct MenuBarWindowView: View {
     }
 }
 
-private enum TaskViewMode: String, CaseIterable, Identifiable {
+enum TaskViewMode: String, CaseIterable, Identifiable {
     case all
     case today
     case suggested
@@ -1517,6 +1550,15 @@ private enum TaskViewMode: String, CaseIterable, Identifiable {
             return "chart.bar"
         }
     }
+}
+
+enum TaskPanelSettingsAnchor: Hashable {
+    case display
+    case focus
+    case priority
+    case capsule
+    case shortcuts
+    case actions
 }
 
 private struct CompletedTaskRow: View {

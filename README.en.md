@@ -50,17 +50,17 @@ Each task supports title editing, notes, due time, reminder time, repeat rule, p
 
 Tasks can be viewed by All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
 
-### Settings: Display and Island
+### Settings: Display and Focus
 
 ![Display and island settings](assets/screenshots/06-settings-display-capsule.png)
 
-Settings cover the floating island toggle, menu bar title, dark mode, top spacing, transparency, background color, text color, and custom island placement.
+Settings cover the floating island toggle, menu bar title, dark mode, default focus duration, and priority colors.
 
-### Settings: Focus and Priorities
+### Settings: Priorities and Island
 
 ![Focus and priority settings](assets/screenshots/07-settings-focus-priority.png)
 
-Configure the default focus duration, preset focus buttons, and high / medium / low priority colors.
+Configure high / medium / low priority colors, island transparency, background color, text color, and top placement.
 
 ### Settings: Shortcuts and Data
 

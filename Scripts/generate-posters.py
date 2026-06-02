@@ -208,6 +208,13 @@ def ensure_ui_snapshots():
         UI_SNAPSHOTS / "island-attention.png",
         UI_SNAPSHOTS / "island-expanded.png",
         UI_SNAPSHOTS / "task-panel.png",
+        UI_SNAPSHOTS / "task-panel-today.png",
+        UI_SNAPSHOTS / "task-panel-review.png",
+        UI_SNAPSHOTS / "quick-add.png",
+        UI_SNAPSHOTS / "task-detail.png",
+        UI_SNAPSHOTS / "settings-display.png",
+        UI_SNAPSHOTS / "settings-priority-capsule.png",
+        UI_SNAPSHOTS / "settings-shortcuts-data.png",
     ]
     if os.environ.get("TASKISLAND_SKIP_UI_RENDER") == "1" and all(path.exists() for path in required):
         return
@@ -239,6 +246,13 @@ clip_specs = {
     "island-attention.png": (340, "capsule"),
     "island-expanded.png": (440, 28),
     "task-panel.png": (430, 28),
+    "task-panel-today.png": (430, 28),
+    "task-panel-review.png": (430, 28),
+    "quick-add.png": (500, 24),
+    "task-detail.png": (430, 12),
+    "settings-display.png": (430, 28),
+    "settings-priority-capsule.png": (430, 28),
+    "settings-shortcuts-data.png": (430, 28),
 }
 
 
@@ -857,152 +871,80 @@ def render_screenshot_task_panel():
 
 
 def render_screenshot_quick_add():
-    img, draw = screenshot_canvas("快速新增", "用一句话创建任务，自动识别日期、时间、标签、优先级和专注分钟。")
-    x, y, w, h = 250, 300, 1100, 330
-    paste_glass(img, (x, y), (w, h), 34, (235, 252, 255, 176), (255, 255, 255, 146))
-    draw_icon(img, (x + 46, y + 42), 74)
-    draw.text((x + 140, y + 45), "快速新增任务", font=font(42), fill=(18, 82, 90, 238))
-    draw_icon_button(draw, (x + w - 88, y + 42), 44, "plus")
-    draw.rounded_rectangle((x + 56, y + 142, x + w - 56, y + 214), radius=24, fill=(255, 255, 255, 118), outline=(255, 255, 255, 158))
-    draw.text((x + 86, y + 160), "明天 10点 发周报 #工作 !高 /30m", font=font(34), fill=(18, 82, 90, 236))
-    chip_x = x + 56
-    for text in ["明天 10:00", "高优先级", "#工作", "30 分钟"]:
-        chip_x = draw_label(draw, (chip_x, y + 244), text)
-    draw.text((x + 58, y + 650 - 42), "支持快捷键唤起，也可以从悬浮岛加号进入。", font=font(28), fill=(226, 248, 247, 224))
+    img, draw = screenshot_canvas("快速新增", "实际快速新增面板：一句话输入任务，并选择默认优先级。")
+    paste_ui_snapshot(img, "quick-add.png", (295, 300), 2.02)
+
+    label_x = draw_label(draw, (320, 660), "Control + Option + N")
+    label_x = draw_label(draw, (label_x + 8, 660), "自然语言")
+    label_x = draw_label(draw, (label_x + 8, 660), "优先级选择")
+    draw_label(draw, (label_x + 8, 660), "Esc 取消")
+    draw_wrapped(
+        draw,
+        "输入框里的日期、时间、标签、优先级和 /30m 会由真实快速新增解析器处理；这张图直接使用程序的快速新增窗口截图。",
+        (322, 740),
+        960,
+        font(28),
+        (226, 248, 247, 224),
+        8,
+    )
     img.save(SCREENSHOTS / "03-quick-add.png")
 
 
 def render_screenshot_task_detail():
-    img, draw = screenshot_canvas("任务详情", "单条任务里可以设置备注、日期提醒、重复、项目标签、子任务和专注时长。")
-    x, y, w, h = 165, 230, 1270, 650
-    paste_glass(img, (x, y), (w, h), 36, (235, 252, 255, 168), (255, 255, 255, 136))
-    ink = (20, 82, 90, 236)
-    muted = (53, 119, 124, 190)
-    draw.ellipse((x + 44, y + 42, x + 70, y + 68), fill=(255, 96, 106))
-    draw.text((x + 90, y + 33), "Deepseek 文章", font=font(42), fill=ink)
-    draw_icon_button(draw, (x + w - 150, y + 34), 46, "check")
-    draw_icon_button(draw, (x + w - 92, y + 34), 46, "play")
-    left_x = x + 56
-    top = y + 126
-    rows = [
-        ("备注", "补充文章结构、引用链接和发布前检查"),
-        ("截止时间", "今天 18:00"),
-        ("提醒时间", "今天 17:30"),
-        ("重复规则", "不重复 / 每天 / 每周 / 每月 / 每年"),
-        ("项目与标签", "写作 · #AI #研究"),
-    ]
-    for i, (label, value) in enumerate(rows):
-        yy = top + i * 74
-        draw.rounded_rectangle((left_x, yy, x + w - 56, yy + 54), radius=18, fill=(255, 255, 255, 94))
-        draw.text((left_x + 22, yy + 14), label, font=font(22), fill=muted)
-        draw.text((left_x + 190, yy + 13), value, font=font(24), fill=ink)
-    draw.text((left_x, y + h - 126), "子任务", font=font(26), fill=ink)
-    draw.text((left_x + 125, y + h - 126), "□ 搜集资料    □ 写初稿    □ 发布前校对", font=font(24), fill=muted)
-    draw.text((left_x, y + h - 76), "专注分钟", font=font(26), fill=ink)
-    draw_slider_line(draw, (left_x + 130, y + h - 64), 430, 0.42)
-    draw.text((left_x + 590, y + h - 76), "25 分钟", font=font(26), fill=ink)
+    img, draw = screenshot_canvas("任务详情", "实际任务行展开态：编辑时间、项目标签、子任务、备注和专注分钟。")
+    paste_ui_snapshot(img, "task-detail.png", (560, 195), 1.55)
+
+    label_y = 340
+    for text in ["标题可编辑", "任意提醒时间", "项目 / 标签", "子任务", "专注分钟"]:
+        draw_label(draw, (185, label_y), text)
+        label_y += 66
     img.save(SCREENSHOTS / "04-task-detail.png")
 
 
 def render_screenshot_views():
-    img, draw = screenshot_canvas("任务视图", "同一批任务可以按全部、今天、建议、高优、即将、无日期、标签、项目、已完成和回顾查看。")
-    cards = [
-        ("全部", "所有未完成任务", ["Deepseek 文章", "设置明天提醒", "导出 Markdown 备份"]),
-        ("今天", "今天要处理的任务", ["写发布说明", "同步提醒事项"]),
-        ("建议", "按日期与优先级推荐", ["高优任务优先", "被推迟任务提示"]),
-        ("回顾", "完成、推迟、专注统计", ["今日完成 5", "专注 1h 20m", "明天建议关注 2"]),
-    ]
-    positions = [(120, 230), (835, 230), (120, 585), (835, 585)]
-    for (title, subtitle, rows), pos in zip(cards, positions):
-        x, y = pos
-        paste_glass(img, pos, (645, 290), 30, (235, 252, 255, 162), (255, 255, 255, 130))
-        draw.text((x + 36, y + 28), title, font=font(38), fill=(20, 82, 90, 236))
-        draw.text((x + 38, y + 76), subtitle, font=font(22), fill=(53, 119, 124, 190))
-        for i, row in enumerate(rows):
-            yy = y + 124 + i * 50
-            draw.rounded_rectangle((x + 34, yy, x + 610, yy + 36), radius=18, fill=(255, 255, 255, 94))
-            draw.ellipse((x + 54, yy + 12, x + 66, yy + 24), fill=[(255, 96, 106), (255, 204, 83), (76, 220, 151)][i % 3])
-            draw.text((x + 84, yy + 5), row, font=font(22), fill=(20, 82, 90, 228))
+    img, draw = screenshot_canvas("任务视图", "同一个真实任务面板可以切换今天、建议、高优、即将、标签、项目和回顾。")
+    draw.text((260, 220), "今天", font=font(34), fill=(235, 255, 255, 245))
+    draw.text((940, 220), "回顾", font=font(34), fill=(235, 255, 255, 245))
+    paste_ui_snapshot(img, "task-panel-today.png", (210, 275), 1.02)
+    paste_ui_snapshot(img, "task-panel-review.png", (880, 275), 1.02)
+
+    label_x = draw_label(draw, (260, 900), "横向视图切换")
+    label_x = draw_label(draw, (label_x + 8, 900), "今天队列")
+    label_x = draw_label(draw, (label_x + 8, 900), "完成记录")
+    draw_label(draw, (label_x + 8, 900), "明日建议")
     img.save(SCREENSHOTS / "05-task-views.png")
 
 
 def render_screenshot_settings_display():
-    img, draw = screenshot_canvas("设置：显示与悬浮岛", "展示悬浮岛开关、菜单栏标题、暗夜模式、位置、透明度、背景色和文字色。")
-    draw_setting_card(draw, (120, 230), (650, 600), "显示", "gear")
-    rows = [("显示悬浮岛", True), ("菜单栏标题", True), ("暗夜模式", False)]
-    for i, (label, on) in enumerate(rows):
-        yy = 320 + i * 92
-        draw.text((170, yy), label, font=font(28), fill=(20, 82, 90, 236))
-        draw_switch(draw, (620, yy), on)
-    draw_setting_card(draw, (830, 230), (650, 600), "悬浮岛", "pin")
-    labels = [("顶部间距", "0"), ("透明度", "42%")]
-    for i, (label, value) in enumerate(labels):
-        yy = 320 + i * 100
-        draw.text((880, yy), label, font=font(27), fill=(20, 82, 90, 236))
-        draw_slider_line(draw, (1040, yy + 12), 300, 0.22 if i == 0 else 0.42)
-        draw.text((1370, yy), value, font=font(24), fill=(53, 119, 124, 190))
-    for i, (label, color, action) in enumerate([("背景颜色", (221, 247, 255), "恢复默认"), ("文字颜色", (18, 82, 90), "自动")]):
-        yy = 522 + i * 100
-        draw.text((880, yy), label, font=font(27), fill=(20, 82, 90, 236))
-        draw.rounded_rectangle((1190, yy - 4, 1240, yy + 44), radius=14, fill=color, outline=(255, 255, 255, 150), width=2)
-        draw_label(draw, (1270, yy - 4), action)
+    img, draw = screenshot_canvas("设置：显示与专注", "实际设置面板顶部：显示开关、暗夜模式、默认专注时长和优先级颜色。")
+    paste_ui_snapshot(img, "settings-display.png", (570, 215), 1.08)
+
+    label_y = 360
+    for text in ["显示悬浮岛", "菜单栏标题", "暗夜模式", "默认专注"]:
+        draw_label(draw, (195, label_y), text)
+        label_y += 66
     img.save(SCREENSHOTS / "06-settings-display-capsule.png")
 
 
 def render_screenshot_settings_focus_priority():
-    img, draw = screenshot_canvas("设置：专注与优先级", "展示默认专注时长、快捷时长按钮，以及高 / 中 / 低优先级颜色。")
-    draw_setting_card(draw, (120, 230), (650, 600), "专注", "play")
-    draw.text((170, 330), "默认时长", font=font(28), fill=(20, 82, 90, 236))
-    draw_slider_line(draw, (320, 342), 310, 0.42)
-    draw.text((650, 330), "25 分钟", font=font(24), fill=(53, 119, 124, 190))
-    x = 170
-    for text in ["15 分钟", "25 分钟", "45 分钟", "60 分钟"]:
-        x = draw_label(draw, (x, 420), text)
-    draw.text((170, 516), "单个任务可在任务详情里单独设置专注分钟。", font=font(24), fill=(53, 119, 124, 196))
+    img, draw = screenshot_canvas("设置：优先级与悬浮岛", "实际设置面板中段：优先级颜色、透明度、背景色和文字色。")
+    paste_ui_snapshot(img, "settings-priority-capsule.png", (570, 215), 1.08)
 
-    draw_setting_card(draw, (830, 230), (650, 600), "优先级颜色", "gear")
-    priorities = [("高优先级", (255, 96, 106), "#FF606A"), ("中优先级", (255, 204, 83), "#FFCC53"), ("低优先级", (76, 220, 151), "#4CDC97")]
-    for i, (label, color, hex_value) in enumerate(priorities):
-        yy = 330 + i * 110
-        draw.rounded_rectangle((880, yy - 18, 1428, yy + 58), radius=22, fill=(255, 255, 255, 96))
-        draw.ellipse((910, yy + 4, 940, yy + 34), fill=color)
-        draw.text((965, yy), label, font=font(27), fill=(20, 82, 90, 236))
-        draw.text((1265, yy + 3), hex_value, font=font(23), fill=(53, 119, 124, 190))
-    draw_label(draw, (1040, 694), "恢复默认")
+    label_y = 360
+    for text in ["优先级颜色", "悬浮岛透明度", "背景颜色", "文字颜色"]:
+        draw_label(draw, (180, label_y), text)
+        label_y += 66
     img.save(SCREENSHOTS / "07-settings-focus-priority.png")
 
 
 def render_screenshot_settings_shortcuts_data():
-    img, draw = screenshot_canvas("设置：快捷键与数据", "展示快速新增快捷键、导出格式、导入导出、Apple 提醒事项、隐藏和退出。")
-    draw_setting_card(draw, (120, 230), (650, 600), "快捷键", "gear")
-    draw.text((170, 330), "快速新增", font=font(28), fill=(20, 82, 90, 236))
-    draw_label(draw, (500, 322), "Option + Q")
-    draw.text((170, 425), "修饰键", font=font(25), fill=(53, 119, 124, 190))
-    x = 290
-    for text in ["Option", "Control", "Command"]:
-        x = draw_label(draw, (x, 416), text)
-    draw.text((170, 520), "按键", font=font(25), fill=(53, 119, 124, 190))
-    x = 290
-    for text in ["Q", "A", "Space"]:
-        x = draw_label(draw, (x, 512), text)
-    draw_label(draw, (170, 630), "恢复默认")
+    img, draw = screenshot_canvas("设置：快捷键与数据", "实际设置面板底部：快捷键、导入导出、Apple 提醒事项、隐藏和退出。")
+    paste_ui_snapshot(img, "settings-shortcuts-data.png", (570, 215), 1.08)
 
-    draw_setting_card(draw, (830, 230), (650, 600), "操作", "gear")
-    draw.text((880, 330), "导出格式", font=font(27), fill=(20, 82, 90, 236))
-    x = 1020
-    for text in ["JSON", "Markdown", "CSV"]:
-        x = draw_label(draw, (x, 322), text)
-    action_rows = [
-        ("刷新", "导出", "导入"),
-        ("导入提醒", "导出提醒"),
-        ("隐藏", "退出"),
-    ]
-    yy = 430
-    for row in action_rows:
-        x = 880
-        for text in row:
-            x = draw_label(draw, (x, yy), text)
-        yy += 96
+    label_y = 360
+    for text in ["快捷键自定义", "JSON / Markdown / CSV", "Apple 提醒事项", "隐藏 / 退出"]:
+        draw_label(draw, (145, label_y), text)
+        label_y += 66
     img.save(SCREENSHOTS / "08-settings-shortcuts-data.png")
 
 

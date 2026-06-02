@@ -18,6 +18,13 @@ enum MarketingAssetRenderer {
         try renderAttentionIsland(to: outputDirectory.appendingPathComponent("island-attention.png"))
         try renderExpandedIsland(to: outputDirectory.appendingPathComponent("island-expanded.png"))
         try renderTaskPanel(to: outputDirectory.appendingPathComponent("task-panel.png"))
+        try renderTaskPanel(to: outputDirectory.appendingPathComponent("task-panel-today.png"), mode: .today)
+        try renderTaskPanel(to: outputDirectory.appendingPathComponent("task-panel-review.png"), mode: .review)
+        try renderQuickAdd(to: outputDirectory.appendingPathComponent("quick-add.png"))
+        try renderTaskDetail(to: outputDirectory.appendingPathComponent("task-detail.png"))
+        try renderSettingsPanel(to: outputDirectory.appendingPathComponent("settings-display.png"), anchor: .display)
+        try renderSettingsPanel(to: outputDirectory.appendingPathComponent("settings-priority-capsule.png"), anchor: .priority)
+        try renderSettingsPanel(to: outputDirectory.appendingPathComponent("settings-shortcuts-data.png"), anchor: .shortcuts)
     }
 
     private static func renderCollapsedIsland(to url: URL) throws {
@@ -88,19 +95,93 @@ enum MarketingAssetRenderer {
         try render(view, size: CGSize(width: 440, height: 122), padding: 0, to: url)
     }
 
-    private static func renderTaskPanel(to url: URL) throws {
+    private static func renderTaskPanel(to url: URL, mode: TaskViewMode = .all) throws {
         let store = try makeStore()
         try addDemoTasks(to: store, includeFocus: true)
         let state = TaskPanelState()
 
-        let view = MenuBarWindowView(panelState: state)
+        let view = MenuBarWindowView(panelState: state, initialTaskViewMode: mode)
             .environmentObject(store)
             .environmentObject(makeSettings())
 
         try render(view, size: CGSize(width: 430, height: 590), padding: 0, to: url)
     }
 
-    private static func render<V: View>(_ view: V, size: CGSize, padding: CGFloat, to url: URL) throws {
+    private static func renderQuickAdd(to url: URL) throws {
+        let view = QuickAddView(
+            initialTitle: "明天 10点 发周报 #工作 !高 /30m",
+            initialPriority: .high,
+            shouldAutoFocus: false,
+            onSubmit: { _, _ in },
+            onCancel: {}
+        )
+        .environmentObject(makeSettings())
+
+        try render(view, size: CGSize(width: 500, height: 156), padding: 0, to: url)
+    }
+
+    private static func renderTaskDetail(to url: URL) throws {
+        let store = try makeStore()
+        let now = Date()
+        guard let task = store.addTaskFromMetadata(
+            title: "Deepseek 文章",
+            notes: "补充文章结构、引用链接和发布前检查。",
+            isCurrent: true,
+            priority: .high,
+            dueAt: Calendar.current.date(byAdding: .hour, value: 4, to: now),
+            reminderAt: Calendar.current.date(byAdding: .hour, value: 3, to: now),
+            repeatRule: .weekly,
+            tags: ["AI", "研究"],
+            projectName: "写作",
+            estimatedMinutes: 25,
+            todaySortIndex: 0,
+            subtasks: [
+                TaskSubtask(title: "搜集资料", isCompleted: true),
+                TaskSubtask(title: "写初稿"),
+                TaskSubtask(title: "发布前校对")
+            ]
+        ) else {
+            throw RenderError.demoDataFailed
+        }
+
+        let view = TaskRowView(task: task, initiallyShowingDetails: true)
+            .environmentObject(store)
+            .environmentObject(makeSettings())
+
+        try render(view, size: CGSize(width: 430, height: 470), padding: 0, to: url)
+    }
+
+    private static func renderSettingsPanel(to url: URL, anchor: TaskPanelSettingsAnchor) throws {
+        let store = try makeStore()
+        try addDemoTasks(to: store, includeFocus: true)
+        let state = TaskPanelState()
+        let settings = makeSettings()
+        settings.capsuleTransparencyPercent = 32
+
+        let view = MenuBarWindowView(
+            panelState: state,
+            initialShowingSettings: true,
+            initialSettingsAnchor: anchor
+        )
+        .environmentObject(store)
+        .environmentObject(settings)
+
+        try render(
+            view,
+            size: CGSize(width: 430, height: 590),
+            padding: 0,
+            scrollFraction: settingsScrollFraction(for: anchor),
+            to: url
+        )
+    }
+
+    private static func render<V: View>(
+        _ view: V,
+        size: CGSize,
+        padding: CGFloat,
+        scrollFraction: CGFloat? = nil,
+        to url: URL
+    ) throws {
         let canvasSize = CGSize(width: size.width + padding * 2, height: size.height + padding * 2)
         let content = view
             .frame(width: size.width, height: size.height)
@@ -124,7 +205,12 @@ enum MarketingAssetRenderer {
         window.contentView = hostingView
         window.displayIfNeeded()
         hostingView.layoutSubtreeIfNeeded()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.08))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.55))
+        if let scrollFraction {
+            scrollFirstScrollView(in: hostingView, to: scrollFraction)
+            hostingView.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.12))
+        }
 
         guard let bitmap = NSBitmapImageRep(
             bitmapDataPlanes: nil,
@@ -149,6 +235,39 @@ enum MarketingAssetRenderer {
             throw RenderError.pngEncodingFailed(url.lastPathComponent)
         }
         try data.write(to: url, options: .atomic)
+    }
+
+    private static func settingsScrollFraction(for anchor: TaskPanelSettingsAnchor) -> CGFloat? {
+        switch anchor {
+        case .display, .focus:
+            return 0
+        case .priority, .capsule:
+            return 0.58
+        case .shortcuts, .actions:
+            return 1
+        }
+    }
+
+    private static func scrollFirstScrollView(in view: NSView, to fraction: CGFloat) {
+        guard let scrollView = firstScrollView(in: view), let documentView = scrollView.documentView else { return }
+        let maxOffset = max(documentView.bounds.height - scrollView.contentView.bounds.height, 0)
+        let yOffset = max(0, min(maxOffset, maxOffset * fraction))
+        scrollView.contentView.scroll(to: NSPoint(x: 0, y: yOffset))
+        scrollView.reflectScrolledClipView(scrollView.contentView)
+    }
+
+    private static func firstScrollView(in view: NSView) -> NSScrollView? {
+        if let scrollView = view as? NSScrollView {
+            return scrollView
+        }
+
+        for subview in view.subviews {
+            if let scrollView = firstScrollView(in: subview) {
+                return scrollView
+            }
+        }
+
+        return nil
     }
 
     private static func makeStore() throws -> TaskStore {
@@ -212,6 +331,14 @@ enum MarketingAssetRenderer {
         store.addTaskFromMetadata(
             title: "导出 Markdown 备份",
             priority: .low
+        )
+        store.addTaskFromMetadata(
+            title: "整理图标细节",
+            isCompleted: true,
+            completedAt: now.addingTimeInterval(-1_800),
+            priority: .medium,
+            tags: ["设计"],
+            estimatedMinutes: 20
         )
 
         if includeFocus {
