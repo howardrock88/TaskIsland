@@ -1,6 +1,6 @@
 # TaskIsland
 
-TaskIsland is a local-first floating task app for macOS. It keeps the question “what should I do now?” visible at the top of your desktop through a lightweight liquid-glass island for priorities, current task focus, and quick actions.
+TaskIsland is a local-first floating task app for macOS. It keeps important tasks, reminders, and focus timing at the top of your desktop through a lightweight liquid-glass island, so you can capture, review, and move tasks forward without switching apps.
 
 ![TaskIsland 16:9 poster](assets/posters/taskisland-poster-16x9.png)
 
@@ -8,12 +8,12 @@ TaskIsland is a local-first floating task app for macOS. It keeps the question �
 
 ## Highlights
 
-- **Floating task island**: collapsed mode shows high / medium / low priority counts; hover mode previews up to 3 tasks.
-- **Current task and focus**: the task panel highlights the current task or active focus session, with one-click start / pause.
-- **Quick add**: open a global quick-add panel and type natural language such as `tomorrow 10:00 weekly report #work !high /30m`.
+- **Three island states**: collapsed mode shows high / medium / low priority counts; focus or reminder mode switches to a medium capsule with task title, countdown, pause, and stop; hover mode previews up to 3 important tasks.
+- **Current task and focus**: mark any task as current, then use it from the focus card and menu bar. Starting focus moves the island into medium mode with pause, resume, and stop controls.
+- **Quick add**: press the default `Control + Option + N` shortcut and type natural language such as `tomorrow 10:00 weekly report #work !high /30m`.
 - **Task panel views**: All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
 - **Rich task details**: notes, arbitrary due date, arbitrary reminder time, repeat rule, project, tags, subtasks, estimated focus minutes, postpone, and “set as current”.
-- **Custom appearance**: dark glass mode, island transparency, background color, text color, priority colors, and top position.
+- **Custom appearance**: dark glass mode, island transparency, background color, text color, priority colors, top position, and drag placement.
 - **Local-first data**: SwiftData storage, no account required; JSON, Markdown, and CSV import / export.
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
 - **Installable builds**: scripts generate `.app`, `.pkg`, and `.dmg` packages for `/Applications/任务岛.app`.
@@ -24,13 +24,13 @@ TaskIsland is a local-first floating task app for macOS. It keeps the question �
 
 ![Floating island](assets/screenshots/01-floating-island.png)
 
-Collapsed mode shows high / medium / low priority counts. Hovering expands the island with the current task, quick add, completion, and pin controls.
+Collapsed mode shows high / medium / low priority counts. Hovering expands the island with up to 3 important tasks plus quick add, pin, complete, and delete controls. During focus or reminder alerts, the island becomes a medium capsule with task title, countdown, and focus controls.
 
 ### Task Panel
 
 ![Task panel](assets/screenshots/02-task-panel.png)
 
-Clicking the island opens the full task panel. It starts with all incomplete tasks and keeps current focus, task lists, view switching, and panel pinning in one place.
+Clicking the island opens the full task panel. It starts with all incomplete tasks and keeps current focus, task lists, view switching, search, and panel pinning in one place.
 
 ### Quick Add
 
@@ -42,7 +42,7 @@ Quick add supports natural-language input for dates, times, priorities, tags, an
 
 ![Task details](assets/screenshots/04-task-detail.png)
 
-Each task supports notes, due time, reminder time, repeat rule, project, tags, subtasks, and per-task focus minutes.
+Each task supports title editing, notes, due time, reminder time, repeat rule, project, tags, subtasks, postponing, “set as current”, and per-task focus minutes.
 
 ### Task Views
 
@@ -54,7 +54,7 @@ Tasks can be viewed by All, Today, Suggestions, High Priority, Upcoming, No Date
 
 ![Display and island settings](assets/screenshots/06-settings-display-capsule.png)
 
-Settings cover the floating island toggle, menu bar title, dark mode, top spacing, transparency, background color, and text color.
+Settings cover the floating island toggle, menu bar title, dark mode, top spacing, transparency, background color, text color, and custom island placement.
 
 ### Settings: Focus and Priorities
 
@@ -83,7 +83,7 @@ After launch:
 
 - Click the floating island to open the task panel.
 - Hover the island to preview tasks.
-- Press the default `Option + Q` shortcut to open quick add. The shortcut is customizable in Settings.
+- Press the default `Control + Option + N` shortcut to open quick add. The shortcut can be customized with common modifier and letter / space combinations.
 - Press `Esc` or the close button to dismiss quick add.
 
 ## Build
