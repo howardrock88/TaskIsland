@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
+import subprocess
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "posters"
 SCREENSHOTS = ROOT / "assets" / "screenshots"
+UI_SNAPSHOTS = ROOT / "assets" / "ui-snapshots"
 ICON = ROOT / "Resources" / "AppIcon.png"
 
 FONT_CANDIDATES = [
@@ -122,6 +125,72 @@ def chip_width(text: str) -> int:
 def draw_icon(base: Image.Image, xy: tuple[int, int], size: int):
     icon = Image.open(ICON).convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
     base.alpha_composite(icon, xy)
+
+
+def ensure_ui_snapshots():
+    required = [
+        UI_SNAPSHOTS / "island-collapsed.png",
+        UI_SNAPSHOTS / "island-attention.png",
+        UI_SNAPSHOTS / "island-expanded.png",
+        UI_SNAPSHOTS / "task-panel.png",
+    ]
+    if os.environ.get("TASKISLAND_SKIP_UI_RENDER") == "1" and all(path.exists() for path in required):
+        return
+
+    subprocess.run(
+        [
+            "swift",
+            "run",
+            "TaskIsland",
+            "--render-marketing-assets",
+            "--marketing-output",
+            str(UI_SNAPSHOTS),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
+    clip_ui_snapshots()
+
+
+def clip_ui_snapshots():
+    clip_specs = {
+        "island-collapsed.png": (172, "capsule"),
+        "island-attention.png": (340, "capsule"),
+        "island-expanded.png": (440, 28),
+        "task-panel.png": (430, 28),
+    }
+
+    for name, (logical_width, radius) in clip_specs.items():
+        path = UI_SNAPSHOTS / name
+        image = Image.open(path).convert("RGBA")
+        scale = image.width / logical_width
+        radius_px = image.height // 2 if radius == "capsule" else int(radius * scale)
+
+        mask = Image.new("L", image.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle(
+            (0, 0, image.width - 1, image.height - 1),
+            radius=radius_px,
+            fill=255,
+        )
+        image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
+        image.save(path)
+
+
+def paste_ui_snapshot(base: Image.Image, name: str, xy: tuple[int, int], scale: float = 1.0) -> tuple[int, int]:
+    image = Image.open(UI_SNAPSHOTS / name).convert("RGBA")
+    size = (int(image.width / 3 * scale), int(image.height / 3 * scale))
+    image = image.resize(size, Image.Resampling.LANCZOS)
+    alpha = image.getchannel("A")
+    blur = max(8, int(18 * scale))
+    pad = blur * 3
+    shadow_alpha = Image.new("L", (size[0] + pad * 2, size[1] + pad * 2), 0)
+    shadow_alpha.paste(alpha, (pad, pad))
+    shadow_alpha = shadow_alpha.filter(ImageFilter.GaussianBlur(blur)).point(lambda value: int(value * 0.34))
+    shadow = Image.new("RGBA", shadow_alpha.size, (0, 0, 0, 0))
+    shadow.putalpha(shadow_alpha)
+    base.alpha_composite(shadow, (xy[0] - pad, xy[1] - pad + max(4, int(10 * scale))))
+    base.alpha_composite(image, xy)
+    return size
 
 
 def draw_plus(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
@@ -528,10 +597,10 @@ def render_landscape():
             chip_y += 62
         chip_x = draw_chip(draw, (chip_x, chip_y), text)
 
-    draw_collapsed_island_mock(img, (1118, 100), 1.0)
-    draw_attention_island_mock(img, (1010, 204), 1.0)
-    draw_island_mock(img, (902, 336), 1.02)
-    draw_task_panel_mock(img, (930, 572), (800, 360), 0.86)
+    paste_ui_snapshot(img, "task-panel.png", (1425, 250), 0.98)
+    paste_ui_snapshot(img, "island-collapsed.png", (1060, 350), 1.75)
+    paste_ui_snapshot(img, "island-attention.png", (970, 470), 1.20)
+    paste_ui_snapshot(img, "island-expanded.png", (890, 630), 1.12)
     draw.text((135, 960), "轻量聚焦任务面板 · macOS 常驻小工具 · 可打包安装", font=font(28), fill=(214, 244, 243, 204))
     OUT.mkdir(parents=True, exist_ok=True)
     img.save(OUT / "taskisland-poster-16x9.png")
@@ -563,10 +632,10 @@ def render_portrait():
         (224, 248, 247, 224),
         12,
     )
-    draw_collapsed_island_mock(img, (112, 756), 1.06)
-    draw_attention_island_mock(img, (112, 850), 0.95)
-    draw_island_mock(img, (112, 970), 0.88)
-    draw_task_panel_mock(img, (112, 1134), (856, 284), 0.70)
+    paste_ui_snapshot(img, "task-panel.png", (520, 706), 1.02)
+    paste_ui_snapshot(img, "island-collapsed.png", (64, 766), 1.65)
+    paste_ui_snapshot(img, "island-attention.png", (54, 884), 1.08)
+    paste_ui_snapshot(img, "island-expanded.png", (44, 1032), 0.86)
     OUT.mkdir(parents=True, exist_ok=True)
     img.save(OUT / "taskisland-poster-3x4.png")
 
@@ -628,10 +697,10 @@ def draw_setting_card(
 
 def render_screenshot_floating_island():
     img, draw = screenshot_canvas("悬浮岛", "收起时只留优先级数量，悬停后展开当前任务和快速操作。")
-    draw_collapsed_island_mock(img, (150, 255), 1.18)
-    draw_attention_island_mock(img, (150, 380), 1.0)
-    draw_island_mock(img, (150, 535), 1.05)
-    draw_task_panel_mock(img, (900, 240), (570, 470), 0.74)
+    paste_ui_snapshot(img, "island-collapsed.png", (120, 240), 1.3)
+    paste_ui_snapshot(img, "island-attention.png", (105, 370), 1.0)
+    paste_ui_snapshot(img, "island-expanded.png", (95, 525), 1.0)
+    paste_ui_snapshot(img, "task-panel.png", (900, 190), 0.72)
     x = draw_label(draw, (150, 770), "小胶囊：高 / 中 / 低数量")
     x = draw_label(draw, (x, 770), "中胶囊：专注 / 提醒")
     draw_label(draw, (x, 770), "展开态：任务行操作")
@@ -642,8 +711,7 @@ def render_screenshot_floating_island():
 
 def render_screenshot_task_panel():
     img, draw = screenshot_canvas("任务面板", "默认显示所有未完成任务，同时提供当前任务、快速新增和多视图切换。")
-    draw_task_panel_mock(img, (150, 210), (1280, 610), 1.08)
-    draw_settings_slice(img, (920, 650), (420, 210), 0.78)
+    paste_ui_snapshot(img, "task-panel.png", (280, 170), 0.98)
     draw_label(draw, (170, 860), "全部任务")
     draw_label(draw, (320, 860), "今天")
     draw_label(draw, (420, 860), "高优")
@@ -814,6 +882,7 @@ def render_readme_screenshots():
 
 
 if __name__ == "__main__":
+    ensure_ui_snapshots()
     render_landscape()
     render_portrait()
     render_readme_screenshots()
