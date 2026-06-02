@@ -36,6 +36,8 @@ struct TaskRowView: View {
                     HStack(spacing: 6) {
                         if task.isCurrent {
                             metadataBadge("当前", systemName: "smallcircle.filled.circle")
+                        } else {
+                            currentTaskButton
                         }
                         todayQueueButton
                         if let dueAt = task.dueAt {
@@ -157,6 +159,19 @@ struct TaskRowView: View {
         }
         .buttonStyle(.plain)
         .help(task.isInTodayQueue ? "移出今天队列" : "加入今天队列")
+    }
+
+    private var currentTaskButton: some View {
+        Button {
+            store.setCurrent(task)
+        } label: {
+            Label("设为当前", systemImage: "arrowtriangle.right.circle")
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(Color.accentColor)
+                .labelStyle(.titleAndIcon)
+        }
+        .buttonStyle(.plain)
+        .help("把这条任务设为当前任务")
     }
 
     private var detailPanel: some View {
@@ -332,13 +347,6 @@ struct TaskRowView: View {
                     .lineLimit(1)
 
                 Spacer(minLength: 8)
-
-                if !task.isCurrent {
-                    quickDateButton("设为当前", systemName: "smallcircle.filled.circle") {
-                        store.setCurrent(task)
-                    }
-                    .help("把这条任务显示到顶部专注区")
-                }
 
                 quickDateButton(task.focusStartedAt == nil ? "开始专注" : "暂停", systemName: task.focusStartedAt == nil ? "play.fill" : "pause.fill") {
                     store.toggleFocus(task)
