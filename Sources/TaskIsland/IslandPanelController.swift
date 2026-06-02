@@ -332,7 +332,17 @@ final class IslandPanelController {
     }
 
     private var hasAttentionContent: Bool {
-        store.focusAttentionTask != nil || activeReminderTask != nil
+        activeFocusAttentionTask != nil || activeReminderTask != nil
+    }
+
+    private var activeFocusAttentionTask: TaskItem? {
+        if let task = store.focusAttentionTask {
+            return task
+        }
+        guard let focusAttentionTaskID = viewState.focusAttentionTaskID else {
+            return nil
+        }
+        return store.incompleteTasks.first { $0.id == focusAttentionTaskID }
     }
 
     private var activeReminderTask: TaskItem? {
@@ -342,6 +352,14 @@ final class IslandPanelController {
 
     private func updateAttentionState() {
         clearStaleReminderAlertIfNeeded()
+        if let focusTask = store.focusAttentionTask {
+            if viewState.focusAttentionTaskID != focusTask.id {
+                viewState.attentionStartedAt = Date()
+            }
+            viewState.focusAttentionTaskID = focusTask.id
+        } else if store.focusAttentionTaskID == nil {
+            viewState.focusAttentionTaskID = nil
+        }
         viewState.usesAttentionSize = hasAttentionContent && !isExpanded
     }
 
@@ -565,7 +583,7 @@ final class IslandPanelController {
 
     private func handleAttentionAction(at point: NSPoint) -> Bool {
         guard viewState.usesAttentionSize,
-              let focusTask = store.focusAttentionTask else {
+              let focusTask = activeFocusAttentionTask else {
             return false
         }
 

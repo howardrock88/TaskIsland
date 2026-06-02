@@ -8,6 +8,7 @@ final class IslandViewState: ObservableObject {
     @Published var isResizing = false
     @Published var isPinned = false
     @Published var usesAttentionSize = false
+    @Published var focusAttentionTaskID: UUID?
     @Published var reminderTaskID: UUID?
     @Published var attentionStartedAt = Date()
 }
@@ -125,7 +126,15 @@ struct CapsuleIslandView: View {
     }
 
     private var attentionTask: TaskItem? {
-        store.focusAttentionTask ?? reminderTask
+        focusAttentionTask ?? reminderTask
+    }
+
+    private var focusAttentionTask: TaskItem? {
+        if let task = store.focusAttentionTask {
+            return task
+        }
+        guard let focusAttentionTaskID = viewState.focusAttentionTaskID else { return nil }
+        return store.incompleteTasks.first { $0.id == focusAttentionTaskID }
     }
 
     private var reminderTask: TaskItem? {
@@ -134,7 +143,7 @@ struct CapsuleIslandView: View {
     }
 
     private var isFocusAttention: Bool {
-        store.focusAttentionTask != nil
+        focusAttentionTask != nil
     }
 
     private var isReminderAttention: Bool {

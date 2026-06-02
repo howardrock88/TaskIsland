@@ -402,39 +402,53 @@ struct MenuBarWindowView: View {
                 if let focusTask {
                     HStack(spacing: 6) {
                         if !isActivelyFocusing, store.incompleteCount > 1 {
-                            Button {
+                            focusControlButton(
+                                systemName: "arrow.right.circle",
+                                help: "切到下一个当前任务"
+                            ) {
                                 store.advanceCurrent()
-                            } label: {
-                                Label("下一个", systemImage: "arrow.right.circle")
                             }
-                            .buttonStyle(CompactGlassButtonStyle())
-                            .help("切到下一个当前任务")
                         }
 
-                        Button {
+                        focusControlButton(
+                            systemName: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill",
+                            help: focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注",
+                            isActive: focusTask.focusStartedAt != nil
+                        ) {
                             store.toggleFocus(focusTask)
-                        } label: {
-                            Label(focusTask.focusStartedAt == nil ? "开始" : "暂停", systemImage: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill")
                         }
-                        .buttonStyle(CompactGlassButtonStyle())
-                        .help(focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注")
 
                         if focusTask.focusStartedAt != nil || focusTask.focusSeconds > 0 {
-                            Button {
+                            focusControlButton(
+                                systemName: "stop.fill",
+                                help: "停止专注"
+                            ) {
                                 store.stopFocus(focusTask)
-                            } label: {
-                                Label("停止", systemImage: "stop.fill")
                             }
-                            .buttonStyle(CompactGlassButtonStyle())
-                            .help("停止专注")
                         }
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
             .background(glassSection(cornerRadius: 16))
         }
+    }
+
+    private func focusControlButton(
+        systemName: String,
+        help: String,
+        isActive: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 11.5, weight: .bold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(GlassIconButtonStyle(isActive: isActive))
+        .help(help)
     }
 
     private var todaySection: some View {
