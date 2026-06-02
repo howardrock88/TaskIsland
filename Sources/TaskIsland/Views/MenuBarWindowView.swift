@@ -401,15 +401,6 @@ struct MenuBarWindowView: View {
 
                 if let focusTask {
                     HStack(spacing: 6) {
-                        if !isActivelyFocusing, store.incompleteCount > 1 {
-                            focusControlButton(
-                                systemName: "arrow.right.circle",
-                                help: "切到下一个当前任务"
-                            ) {
-                                store.advanceCurrent()
-                            }
-                        }
-
                         focusControlButton(
                             systemName: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill",
                             help: focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注",
