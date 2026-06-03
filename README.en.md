@@ -20,6 +20,12 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ## Release Notes
 
+### 0.1.2 - 2026-06-03
+
+- Fixed the task panel empty state when only completed tasks remain.
+- The All view now shows completed tasks after incomplete tasks, and search also matches completed tasks.
+- Added a “View” action to the completed-task footer in other task views so users can jump directly to the Completed view.
+
 ### 0.1.1 - 2026-06-02
 
 - Added a shared version file used by the `.app`, `.pkg`, and `.dmg` packaging scripts.
@@ -121,7 +127,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.1.pkg
+open dist/TaskIsland-0.1.2.pkg
 ```
 
 Build the `.dmg` image:
@@ -129,7 +135,7 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.1.dmg
+open dist/TaskIsland-0.1.2.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.

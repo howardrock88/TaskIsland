@@ -20,6 +20,12 @@
 
 ## 更新说明
 
+### 0.1.2 - 2026-06-03
+
+- 修复任务面板只剩已完成任务时显示空状态的问题。
+- “全部”视图现在会在未完成任务后显示已完成任务，搜索也会匹配已完成任务。
+- 其他任务视图底部的已完成提示增加“查看”入口，可直接切到完成视图。
+
 ### 0.1.1 - 2026-06-02
 
 - 建立统一版本文件，`.app`、`.pkg` 和 `.dmg` 打包脚本都会读取同一个版本号。
@@ -121,7 +127,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.1.pkg
+open dist/TaskIsland-0.1.2.pkg
 ```
 
 构建 `.dmg`：
@@ -129,7 +135,7 @@ open dist/TaskIsland-0.1.1.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.1.dmg
+open dist/TaskIsland-0.1.2.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

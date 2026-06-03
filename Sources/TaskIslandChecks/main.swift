@@ -44,6 +44,16 @@ private func runChecks() throws {
 
     do {
         let store = try TaskStore(inMemory: true)
+        guard let task = store.addTask(title: "Only task") else {
+            fatalError("Only task was not created")
+        }
+        store.complete(task)
+        require(store.incompleteTasks.isEmpty, "Completing only task should leave no incomplete tasks")
+        require(store.completedTasks.map(\.title) == ["Only task"], "Completed-only list should retain the task")
+    }
+
+    do {
+        let store = try TaskStore(inMemory: true)
         store.addTask(title: "One")
         store.addTask(title: "Two")
         store.addTask(title: "Three")

@@ -307,16 +307,23 @@ struct MenuBarWindowView: View {
             LazyVStack(spacing: 12) {
                 if taskViewMode == .review {
                     dailyReviewPanel
+                } else if taskViewMode == .all {
+                    if displayedTasks.isEmpty && displayedCompletedTasks.isEmpty {
+                        emptyTasksView
+                    } else {
+                        ForEach(TaskPriority.allCases) { priority in
+                            prioritySection(priority)
+                        }
+                        if !displayedCompletedTasks.isEmpty {
+                            completedSection(tasks: displayedCompletedTasks)
+                        }
+                    }
                 } else if displayedTasks.isEmpty {
                     emptyTasksView
                 } else if taskViewMode == .today {
                     todaySection
-                } else if taskViewMode == .all {
-                    ForEach(TaskPriority.allCases) { priority in
-                        prioritySection(priority)
-                    }
                 } else if taskViewMode == .completed {
-                    completedSection
+                    completedSection(tasks: displayedCompletedTasks)
                 } else if taskViewMode == .tags {
                     tagSections
                 } else if taskViewMode == .projects {
@@ -325,7 +332,7 @@ struct MenuBarWindowView: View {
                     flatTaskSection(title: taskViewMode.title, systemImage: taskViewMode.systemImage, tasks: displayedTasks)
                 }
 
-                if taskViewMode != .completed, !store.completedTasks.isEmpty {
+                if taskViewMode != .all, taskViewMode != .completed, !store.completedTasks.isEmpty {
                     completedFooter
                 }
             }
@@ -373,6 +380,10 @@ struct MenuBarWindowView: View {
             tasks = []
         }
         return filtered(tasks)
+    }
+
+    private var displayedCompletedTasks: [TaskItem] {
+        filtered(store.completedTasks)
     }
 
     private var searchField: some View {
@@ -549,14 +560,14 @@ struct MenuBarWindowView: View {
         }
     }
 
-    private var completedSection: some View {
+    private func completedSection(tasks: [TaskItem]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 7) {
                 Image(systemName: "checkmark.circle")
                     .foregroundStyle(.secondary)
                 Text("已完成")
                     .font(.system(size: 12, weight: .semibold))
-                Text("\(store.completedTasks.count)")
+                Text("\(tasks.count)")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
@@ -564,7 +575,7 @@ struct MenuBarWindowView: View {
             }
             .padding(.horizontal, 2)
 
-            ForEach(store.completedTasks, id: \.id) { task in
+            ForEach(tasks, id: \.id) { task in
                 CompletedTaskRow(task: task)
                     .environmentObject(store)
             }
@@ -645,6 +656,10 @@ struct MenuBarWindowView: View {
             Label("\(store.completedTasks.count) 个已完成", systemImage: "checkmark.circle")
                 .foregroundStyle(.secondary)
             Spacer()
+            Button("查看") {
+                taskViewMode = .completed
+            }
+            .buttonStyle(.plain)
             Button("清空") {
                 store.deleteCompleted()
             }
