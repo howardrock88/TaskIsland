@@ -20,6 +20,12 @@
 
 ## 更新说明
 
+### 0.1.3 - 2026-06-03
+
+- 已完成任务区改为默认折叠，只显示已完成数量和展开按钮。
+- 点击“展开”后才在原地显示已完成任务列表，避免普通任务面板被历史任务占满。
+- 搜索已完成任务时会自动展开匹配结果；单独“完成”视图仍直接显示列表。
+
 ### 0.1.2 - 2026-06-03
 
 - 修复任务面板只剩已完成任务时显示空状态的问题。
@@ -127,7 +133,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.2.pkg
+open dist/TaskIsland-0.1.3.pkg
 ```
 
 构建 `.dmg`：
@@ -135,7 +141,7 @@ open dist/TaskIsland-0.1.2.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.2.dmg
+open dist/TaskIsland-0.1.3.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

@@ -15,6 +15,7 @@ struct MenuBarWindowView: View {
     @State private var searchText = ""
     @State private var selectedExportFormat: TaskExportFormat = .json
     @State private var isReminderBusy = false
+    @State private var isCompletedSectionExpanded = false
 
     @ObservedObject var panelState: TaskPanelState
     private let remindersBridge = AppleRemindersBridge()
@@ -315,7 +316,7 @@ struct MenuBarWindowView: View {
                             prioritySection(priority)
                         }
                         if !displayedCompletedTasks.isEmpty {
-                            completedSection(tasks: displayedCompletedTasks)
+                            completedSection(tasks: displayedCompletedTasks, isExpanded: isCompletedSectionExpanded || isSearching)
                         }
                     }
                 } else if displayedTasks.isEmpty {
@@ -323,7 +324,7 @@ struct MenuBarWindowView: View {
                 } else if taskViewMode == .today {
                     todaySection
                 } else if taskViewMode == .completed {
-                    completedSection(tasks: displayedCompletedTasks)
+                    completedSection(tasks: displayedCompletedTasks, isExpanded: true)
                 } else if taskViewMode == .tags {
                     tagSections
                 } else if taskViewMode == .projects {
@@ -332,8 +333,8 @@ struct MenuBarWindowView: View {
                     flatTaskSection(title: taskViewMode.title, systemImage: taskViewMode.systemImage, tasks: displayedTasks)
                 }
 
-                if taskViewMode != .all, taskViewMode != .completed, !store.completedTasks.isEmpty {
-                    completedFooter
+                if taskViewMode != .all, taskViewMode != .completed, !displayedCompletedTasks.isEmpty {
+                    completedSection(tasks: displayedCompletedTasks, isExpanded: isCompletedSectionExpanded || isSearching)
                 }
             }
             .padding(.vertical, 4)
@@ -384,6 +385,10 @@ struct MenuBarWindowView: View {
 
     private var displayedCompletedTasks: [TaskItem] {
         filtered(store.completedTasks)
+    }
+
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var searchField: some View {
@@ -560,24 +565,40 @@ struct MenuBarWindowView: View {
         }
     }
 
-    private func completedSection(tasks: [TaskItem]) -> some View {
+    private func completedSection(tasks: [TaskItem], isExpanded: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 7) {
-                Image(systemName: "checkmark.circle")
-                    .foregroundStyle(.secondary)
-                Text("已完成")
-                    .font(.system(size: 12, weight: .semibold))
-                Text("\(tasks.count)")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                Spacer()
+            Button {
+                isCompletedSectionExpanded.toggle()
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text("已完成")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("\(tasks.count)")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(isExpanded ? "收起" : "展开")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .disabled(taskViewMode == .completed || isSearching)
+            .help(isExpanded ? "收起已完成任务" : "展开已完成任务")
             .padding(.horizontal, 2)
 
-            ForEach(tasks, id: \.id) { task in
-                CompletedTaskRow(task: task)
-                    .environmentObject(store)
+            if isExpanded {
+                ForEach(tasks, id: \.id) { task in
+                    CompletedTaskRow(task: task)
+                        .environmentObject(store)
+                }
             }
         }
     }
@@ -649,24 +670,6 @@ struct MenuBarWindowView: View {
         }
         .padding(13)
         .background(glassSection(cornerRadius: 18))
-    }
-
-    private var completedFooter: some View {
-        HStack {
-            Label("\(store.completedTasks.count) 个已完成", systemImage: "checkmark.circle")
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button("查看") {
-                taskViewMode = .completed
-            }
-            .buttonStyle(.plain)
-            Button("清空") {
-                store.deleteCompleted()
-            }
-            .buttonStyle(.plain)
-        }
-        .font(.system(size: 12, weight: .medium))
-        .padding(.top, 4)
     }
 
     private var settingsDisplaySection: some View {
