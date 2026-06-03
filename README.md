@@ -20,12 +20,6 @@
 
 ## 更新说明
 
-### 0.1.2 - 2026-06-03
-
-- 新增小红书竖版 3:4 介绍图，统一输出到 `assets/xiaohongshu/`。
-- 竖版素材覆盖总览海报、三态悬浮岛、任务面板、快速新增、任务详情、任务视图和设置页。
-- 更新宣传图生成脚本，竖版素材复用真实 UI 快照，避免界面展示和实际程序不一致。
-
 ### 0.1.1 - 2026-06-02
 
 - 建立统一版本文件，`.app`、`.pkg` 和 `.dmg` 打包脚本都会读取同一个版本号。
@@ -127,7 +121,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.2.pkg
+open dist/TaskIsland-0.1.1.pkg
 ```
 
 构建 `.dmg`：
@@ -135,7 +129,7 @@ open dist/TaskIsland-0.1.2.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.2.dmg
+open dist/TaskIsland-0.1.1.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

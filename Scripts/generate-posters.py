@@ -11,7 +11,6 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "posters"
 SCREENSHOTS = ROOT / "assets" / "screenshots"
-XHS_OUT = ROOT / "assets" / "xiaohongshu"
 UI_SNAPSHOTS = ROOT / "assets" / "ui-snapshots"
 ICON = ROOT / "Resources" / "AppIcon.png"
 
@@ -291,30 +290,6 @@ def paste_ui_snapshot(base: Image.Image, name: str, xy: tuple[int, int], scale: 
     base.alpha_composite(shadow, (xy[0] - pad, xy[1] - pad + max(4, int(10 * scale))))
     base.alpha_composite(image, xy)
     return size
-
-
-def snapshot_scale(name: str, max_width: int, max_height: int) -> float:
-    image = Image.open(UI_SNAPSHOTS / name)
-    base_width = image.width / 3
-    base_height = image.height / 3
-    return min(max_width / base_width, max_height / base_height)
-
-
-def paste_centered_snapshot(
-    base: Image.Image,
-    name: str,
-    y: int,
-    max_width: int,
-    max_height: int,
-    x_center: int = 540,
-) -> tuple[int, int]:
-    scale = snapshot_scale(name, max_width, max_height)
-    image = Image.open(UI_SNAPSHOTS / name)
-    width = int(image.width / 3 * scale)
-    height = int(image.height / 3 * scale)
-    x = int(x_center - width / 2)
-    paste_ui_snapshot(base, name, (x, y), scale)
-    return width, height
 
 
 def draw_plus(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], ink, scale: float):
@@ -984,153 +959,10 @@ def render_readme_screenshots():
     render_screenshot_settings_shortcuts_data()
 
 
-def xhs_canvas(title: str, subtitle: str) -> tuple[Image.Image, ImageDraw.ImageDraw]:
-    size = (1080, 1440)
-    img = poster_background(size)
-    overlay = Image.new("RGBA", size, (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    od.ellipse((-260, -260, 680, 720), fill=(255, 255, 255, 68))
-    od.ellipse((420, -140, 1320, 760), fill=(88, 222, 221, 46))
-    od.ellipse((-120, 830, 980, 1640), fill=(12, 60, 73, 66))
-    od.ellipse((420, 760, 1380, 1500), fill=(122, 255, 199, 36))
-    img.alpha_composite(overlay.filter(ImageFilter.GaussianBlur(76)))
-
-    draw = ImageDraw.Draw(img)
-    draw_icon(img, (72, 64), 94)
-    draw.text((184, 70), "任务岛", font=font(48), fill=(13, 78, 88, 248))
-    draw.text((187, 126), "TaskIsland", font=font(22), fill=(35, 112, 119, 216))
-    draw_wrapped(draw, title, (72, 206), 930, font(58), (9, 69, 80, 248), 10)
-    draw_wrapped(draw, subtitle, (76, 294), 890, font(30), (25, 91, 100, 226), 11)
-    return img, draw
-
-
-def xhs_footer(draw: ImageDraw.ImageDraw, labels: list[str]):
-    x = 72
-    y = 1304
-    for label in labels:
-        if x + chip_width(label) > 1008:
-            x = 72
-            y += 58
-        x = draw_chip(draw, (x, y), label, fill=(230, 252, 255, 132), stroke=(255, 255, 255, 126))
-
-
-def save_xhs(img: Image.Image, name: str):
-    XHS_OUT.mkdir(parents=True, exist_ok=True)
-    img.save(XHS_OUT / name)
-
-
-def render_xhs_overview():
-    img, draw = xhs_canvas("让重要的事，始终在眼前", "数字岛看数量，专注岛守时间，行动岛处理任务。")
-    paste_ui_snapshot(img, "island-collapsed.png", (216, 472), 3.75)
-    paste_ui_snapshot(img, "island-attention.png", (144, 645), 2.35)
-    paste_ui_snapshot(img, "island-expanded.png", (102, 830), 1.78)
-    draw.text((76, 1186), "三种状态对应三种工作节奏：扫一眼数量、守住专注、直接处理任务。", font=font(30), fill=(224, 248, 247, 222))
-    xhs_footer(draw, ["数字岛", "专注岛", "行动岛", "macOS 常驻"])
-    save_xhs(img, "00-overview-3x4.png")
-
-
-def render_xhs_floating_island():
-    img, draw = xhs_canvas("数字岛 / 专注岛 / 行动岛", "从数量总览，到专注提醒，再到任务行操作，都留在桌面顶部。")
-    items = [
-        ("数字岛", "红 / 黄 / 绿数量，分别代表高、中、低优先级。", "island-collapsed.png", 3.1),
-        ("专注岛", "显示当前任务、倒计时、暂停和停止。", "island-attention.png", 1.92),
-        ("行动岛", "悬停展开后显示最多 3 条重点任务。", "island-expanded.png", 1.34),
-    ]
-    y = 410
-    for title, detail, snapshot, scale in items:
-        paste_glass(img, (72, y - 26), (936, 288), 34, (235, 252, 255, 128), (255, 255, 255, 112), shadow=False)
-        draw.text((108, y), title, font=font(32), fill=(18, 82, 90, 238))
-        draw.text((110, y + 42), detail, font=font(22), fill=(47, 116, 124, 210))
-        image = Image.open(UI_SNAPSHOTS / snapshot)
-        width = int(image.width / 3 * scale)
-        paste_ui_snapshot(img, snapshot, (540 - width // 2, y + 88), scale)
-        y += 292
-    xhs_footer(draw, ["数字岛", "专注岛", "行动岛"])
-    save_xhs(img, "01-floating-island-3x4.png")
-
-
-def render_xhs_task_panel():
-    img, draw = xhs_canvas("任务面板", "默认显示所有未完成任务，当前任务、快速新增、多视图和固定面板都在同一个地方。")
-    paste_centered_snapshot(img, "task-panel.png", 392, 760, 890)
-    xhs_footer(draw, ["全部任务", "当前任务", "快速新增", "固定面板"])
-    save_xhs(img, "02-task-panel-3x4.png")
-
-
-def render_xhs_quick_add():
-    img, draw = xhs_canvas("快速新增", "一句话写任务，同时识别日期、时间、优先级、标签和专注分钟。")
-    paste_centered_snapshot(img, "quick-add.png", 432, 920, 310)
-    paste_glass(img, (112, 842), (856, 260), 34, (235, 252, 255, 134), (255, 255, 255, 116))
-    draw.text((154, 882), "示例输入", font=font(32), fill=(18, 82, 90, 238))
-    draw.text((156, 938), "明天 10点 发周报 #工作 !高 /30m", font=font(32), fill=(18, 82, 90, 238))
-    draw_wrapped(draw, "按快捷键打开，输入完成后直接进入任务列表；不需要先进入完整面板。", (156, 1010), 760, font(25), (47, 116, 124, 210), 8)
-    xhs_footer(draw, ["Control + Option + N", "自然语言", "优先级"])
-    save_xhs(img, "03-quick-add-3x4.png")
-
-
-def render_xhs_task_detail():
-    img, draw = xhs_canvas("任务详情", "点击任意任务都可以展开设置，不只当前任务可以编辑。")
-    paste_centered_snapshot(img, "task-detail.png", 420, 900, 470)
-    paste_glass(img, (114, 912), (852, 226), 34, (235, 252, 255, 134), (255, 255, 255, 116))
-    y = 952
-    for left, right in [("标题", "点击即可编辑"), ("提醒", "任意日期和时间"), ("专注", "每个任务单独设置分钟数")]:
-        draw.text((156, y), left, font=font(28), fill=(18, 82, 90, 238))
-        draw.text((300, y), right, font=font(28), fill=(47, 116, 124, 210))
-        y += 58
-    xhs_footer(draw, ["标题编辑", "提醒时间", "项目 / 标签", "重复规则"])
-    save_xhs(img, "04-task-detail-3x4.png")
-
-
-def render_xhs_views():
-    img, draw = xhs_canvas("任务视图", "全部、今天、高优、即将、标签、项目和回顾，用不同视角整理同一批任务。")
-    left_scale = snapshot_scale("task-panel-today.png", 440, 780)
-    right_scale = snapshot_scale("task-panel-review.png", 440, 780)
-    paste_ui_snapshot(img, "task-panel-today.png", (76, 430), left_scale)
-    paste_ui_snapshot(img, "task-panel-review.png", (564, 430), right_scale)
-    draw.text((114, 1228), "今天队列", font=font(28), fill=(224, 248, 247, 226))
-    draw.text((606, 1228), "完成回顾", font=font(28), fill=(224, 248, 247, 226))
-    xhs_footer(draw, ["全部", "今天", "高优", "回顾"])
-    save_xhs(img, "05-task-views-3x4.png")
-
-
-def render_xhs_settings_display():
-    img, draw = xhs_canvas("设置：显示与专注", "控制悬浮岛显示、菜单栏标题、暗夜模式和默认专注时长。")
-    paste_centered_snapshot(img, "settings-display.png", 392, 760, 890)
-    xhs_footer(draw, ["显示悬浮岛", "暗夜模式", "默认专注", "菜单栏标题"])
-    save_xhs(img, "06-settings-display-3x4.png")
-
-
-def render_xhs_settings_priority():
-    img, draw = xhs_canvas("设置：优先级与悬浮岛", "优先级颜色、悬浮岛透明度、背景颜色和文字颜色都可以自定义。")
-    paste_centered_snapshot(img, "settings-priority-capsule.png", 392, 760, 890)
-    xhs_footer(draw, ["优先级颜色", "透明度", "背景色", "文字色"])
-    save_xhs(img, "07-settings-priority-island-3x4.png")
-
-
-def render_xhs_settings_shortcuts_data():
-    img, draw = xhs_canvas("设置：快捷键与数据", "自定义快速新增快捷键，并支持 JSON、Markdown、CSV 和 Apple 提醒事项导入导出。")
-    paste_centered_snapshot(img, "settings-shortcuts-data.png", 392, 760, 890)
-    xhs_footer(draw, ["快捷键", "导入导出", "Apple 提醒事项", "隐藏 / 退出"])
-    save_xhs(img, "08-settings-shortcuts-data-3x4.png")
-
-
-def render_xiaohongshu_cards():
-    render_xhs_overview()
-    render_xhs_floating_island()
-    render_xhs_task_panel()
-    render_xhs_quick_add()
-    render_xhs_task_detail()
-    render_xhs_views()
-    render_xhs_settings_display()
-    render_xhs_settings_priority()
-    render_xhs_settings_shortcuts_data()
-
-
 if __name__ == "__main__":
     ensure_ui_snapshots()
     render_landscape()
     render_portrait()
     render_readme_screenshots()
-    render_xiaohongshu_cards()
     print(f"Generated posters in {OUT}")
     print(f"Generated screenshots in {SCREENSHOTS}")
-    print(f"Generated Xiaohongshu cards in {XHS_OUT}")
