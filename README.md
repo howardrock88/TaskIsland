@@ -20,6 +20,13 @@
 
 ## 更新说明
 
+### 0.1.4 - 2026-06-04
+
+- 在保留数字岛、专注岛、行动岛三态结构的基础上收口视觉系统。
+- 优化悬浮岛玻璃高光、边界和任务行层级，去掉容易被看成斜线的装饰高光。
+- 统一任务面板、设置面板、任务行和按钮的玻璃材质、描边和阴影细节。
+- 新增本地回退保护点 `visual-baseline-20260604-152102`，可回到本轮视觉优化前的版本。
+
 ### 0.1.3 - 2026-06-03
 
 - 已完成任务区改为默认折叠，只显示已完成数量和展开按钮。
@@ -133,7 +140,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.3.pkg
+open dist/TaskIsland-0.1.4.pkg
 ```
 
 构建 `.dmg`：
@@ -141,7 +148,7 @@ open dist/TaskIsland-0.1.3.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.3.dmg
+open dist/TaskIsland-0.1.4.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

@@ -71,8 +71,8 @@ struct MenuBarWindowView: View {
                 .allowsHitTesting(false)
         }
         .overlay(panelStroke)
-        .shadow(color: .black.opacity(0.18), radius: 30, x: 0, y: 22)
-        .shadow(color: .white.opacity(0.18), radius: 2, x: 0, y: -1)
+        .shadow(color: .black.opacity(settings.darkGlassMode ? 0.34 : 0.20), radius: 30, x: 0, y: 22)
+        .shadow(color: .white.opacity(settings.darkGlassMode ? 0.05 : 0.18), radius: 2, x: 0, y: -1)
         .preferredColorScheme(settings.darkGlassMode ? .dark : nil)
         .onAppear {
             isAddFieldFocused = !isShowingSettings
@@ -286,7 +286,7 @@ struct MenuBarWindowView: View {
             .help("新增任务")
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.vertical, 9)
         .background(glassSection(cornerRadius: 16))
     }
 
@@ -1434,7 +1434,32 @@ struct MenuBarWindowView: View {
             }
             .overlay {
                 shape
-                    .stroke(.white.opacity(settings.darkGlassMode ? 0.20 : 0.38), lineWidth: 1)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(settings.darkGlassMode ? 0.070 : 0.14),
+                                .clear,
+                                .black.opacity(settings.darkGlassMode ? 0.12 : 0.025)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .overlay {
+                shape
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(settings.darkGlassMode ? 0.28 : 0.50),
+                                .white.opacity(settings.darkGlassMode ? 0.11 : 0.24),
+                                .black.opacity(settings.darkGlassMode ? 0.18 : 0.070)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             }
     }
 
@@ -1449,10 +1474,10 @@ struct MenuBarWindowView: View {
         }
 
         return [
-            Color.white.opacity(0.13),
-            Color(red: 0.57, green: 0.90, blue: 1.0).opacity(0.09),
-            Color(red: 0.70, green: 1.0, blue: 0.70).opacity(0.06),
-            Color(red: 1.0, green: 0.82, blue: 0.96).opacity(0.05)
+            Color.white.opacity(0.16),
+            Color(red: 0.57, green: 0.90, blue: 1.0).opacity(0.10),
+            Color(red: 0.70, green: 1.0, blue: 0.70).opacity(0.055),
+            Color(red: 1.0, green: 0.82, blue: 0.96).opacity(0.040)
         ]
     }
 
@@ -1466,8 +1491,8 @@ struct MenuBarWindowView: View {
         }
 
         return [
-            .white.opacity(0.34),
-            .white.opacity(0.09),
+            .white.opacity(0.32),
+            .white.opacity(0.080),
             .clear
         ]
     }
@@ -1482,9 +1507,9 @@ struct MenuBarWindowView: View {
         }
 
         return [
-            .white.opacity(0.78),
-            Color(red: 0.70, green: 0.94, blue: 1.0).opacity(0.35),
-            .white.opacity(0.20)
+            .white.opacity(0.80),
+            Color(red: 0.70, green: 0.94, blue: 1.0).opacity(0.34),
+            .white.opacity(0.22)
         ]
     }
 
@@ -1498,9 +1523,9 @@ struct MenuBarWindowView: View {
         }
 
         return [
-            .white.opacity(0.12),
-            .white.opacity(0.035),
-            Color(red: 0.55, green: 0.92, blue: 1.0).opacity(0.035)
+            .white.opacity(0.13),
+            .white.opacity(0.040),
+            Color(red: 0.55, green: 0.92, blue: 1.0).opacity(0.030)
         ]
     }
 }
@@ -1637,7 +1662,7 @@ private struct GlassIconButtonStyle: ButtonStyle {
         configuration.label
             .foregroundStyle(isActive ? Color.accentColor : .primary)
             .background(.ultraThinMaterial, in: Circle())
-            .background(isActive ? Color.accentColor.opacity(0.16) : Color.clear, in: Circle())
+            .background(isActive ? Color.accentColor.opacity(0.16) : Color.white.opacity(0.030), in: Circle())
             .overlay {
                 Circle()
                     .stroke(
@@ -1647,6 +1672,7 @@ private struct GlassIconButtonStyle: ButtonStyle {
                         lineWidth: 1
                     )
             }
+            .shadow(color: .black.opacity(configuration.isPressed ? 0.04 : 0.075), radius: 5, x: 0, y: 3)
             .scaleEffect(configuration.isPressed ? 0.92 : 1)
             .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
     }
@@ -1666,7 +1692,7 @@ private struct SegmentedGlassButtonStyle: ButtonStyle {
             )
             .overlay {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(.white.opacity(isSelected ? 0.42 : 0.18), lineWidth: 1)
+                    .stroke(.white.opacity(isSelected ? 0.44 : 0.20), lineWidth: 1)
             }
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .animation(.easeInOut(duration: 0.14), value: isSelected)
@@ -1711,6 +1737,7 @@ private struct CompactGlassButtonStyle: ButtonStyle {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(.ultraThinMaterial, in: Capsule())
+            .background(Color.white.opacity(0.025), in: Capsule())
             .overlay {
                 Capsule()
                     .stroke(.white.opacity(configuration.isPressed ? 0.22 : 0.34), lineWidth: 1)
