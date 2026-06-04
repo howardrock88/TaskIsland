@@ -61,7 +61,7 @@ struct CapsuleIslandView: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1
+                    lineWidth: isVisuallyExpanded ? 1 : 1.2
                 )
         }
         .overlay {
@@ -285,8 +285,8 @@ struct CapsuleIslandView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(height: max(height * 0.34, 16))
-                        .blur(radius: 0.8)
+                        .frame(height: max(height * 0.32, 16))
+                        .blur(radius: 0.55)
                         .padding(.horizontal, 8)
                         .padding(.top, 2)
                 } else {
@@ -302,7 +302,7 @@ struct CapsuleIslandView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: max(proxy.size.width - height * 1.18, 72), height: 10)
+                        .frame(width: max(proxy.size.width - height * 1.28, 72), height: 10)
                         .offset(x: height * 0.52, y: 3)
                         .blur(radius: 0.5)
                 }
@@ -312,31 +312,30 @@ struct CapsuleIslandView: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    .clear,
-                                    .white.opacity(settings.darkGlassMode ? 0.16 : 0.28),
+                                    .white.opacity(settings.darkGlassMode ? 0.20 : 0.32),
+                                    .white.opacity(settings.darkGlassMode ? 0.08 : 0.12),
                                     .clear
                                 ],
-                                startPoint: .leading,
-                                endPoint: .trailing
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
                         )
-                        .frame(width: max(proxy.size.width * 0.58, 92), height: 1.4)
-                        .rotationEffect(.degrees(-9))
-                        .offset(x: proxy.size.width * 0.16, y: height * 0.24)
-                        .blur(radius: 0.35)
+                        .frame(width: max(proxy.size.width - height * 1.1, 84), height: 1.2)
+                        .offset(x: height * 0.50, y: height * 0.20)
+                        .blur(radius: 0.18)
                 }
 
                 islandShape
-                    .stroke(.white.opacity(settings.darkGlassMode ? 0.24 : 0.46), lineWidth: 4)
-                    .blur(radius: 5)
+                    .stroke(.white.opacity(settings.darkGlassMode ? 0.24 : 0.42), lineWidth: 3.5)
+                    .blur(radius: 4)
                     .offset(x: -1.5, y: -1.5)
-                    .opacity(settings.darkGlassMode ? 0.54 : 0.78)
+                    .opacity(settings.darkGlassMode ? 0.54 : 0.68)
 
                 islandShape
-                    .stroke(.black.opacity(settings.darkGlassMode ? 0.30 : 0.16), lineWidth: 4)
-                    .blur(radius: 5)
+                    .stroke(.black.opacity(settings.darkGlassMode ? 0.30 : 0.13), lineWidth: 3.5)
+                    .blur(radius: 4)
                     .offset(x: 1.5, y: 2)
-                    .opacity(settings.darkGlassMode ? 0.48 : 0.46)
+                    .opacity(settings.darkGlassMode ? 0.48 : 0.38)
             }
             .allowsHitTesting(false)
 
@@ -467,38 +466,55 @@ struct CapsuleIslandView: View {
     @ViewBuilder
     private var attentionGlowOverlay: some View {
         if showsAttentionContent, let task = attentionTask {
-            TimelineView(.animation) { timeline in
-                let elapsed = timeline.date.timeIntervalSince(viewState.attentionStartedAt)
-                let rotation = elapsed * (isReminderAttention ? 150 : 52)
-                let wave = (sin(elapsed * (isReminderAttention ? 5.4 : 2.2)) + 1) / 2
-                let tint = task.priority.tintColor(settings: settings)
-                let pulseOpacity = isReminderAttention ? 0.34 + 0.34 * wave : 0.20 + 0.10 * wave
+            if isReminderAttention {
+                TimelineView(.animation) { timeline in
+                    let elapsed = timeline.date.timeIntervalSince(viewState.attentionStartedAt)
+                    let rotation = elapsed * 150
+                    let wave = (sin(elapsed * 5.4) + 1) / 2
+                    let tint = task.priority.tintColor(settings: settings)
+                    let pulseOpacity = 0.34 + 0.34 * wave
 
-                ZStack {
-                    islandShape
-                        .stroke(
-                            AngularGradient(
-                                colors: [
-                                    .clear,
-                                    tint.opacity(pulseOpacity),
-                                    .white.opacity(isReminderAttention ? 0.72 : 0.36),
-                                    tint.opacity(pulseOpacity),
-                                    .clear
-                                ],
-                                center: .center,
-                                startAngle: .degrees(rotation),
-                                endAngle: .degrees(rotation + 360)
-                            ),
-                            lineWidth: isReminderAttention ? 2.5 : 1.6
-                        )
-                        .blur(radius: isReminderAttention ? 0.9 : 0.45)
+                    ZStack {
+                        islandShape
+                            .stroke(
+                                AngularGradient(
+                                    colors: [
+                                        .clear,
+                                        tint.opacity(pulseOpacity),
+                                        .white.opacity(0.72),
+                                        tint.opacity(pulseOpacity),
+                                        .clear
+                                    ],
+                                    center: .center,
+                                    startAngle: .degrees(rotation),
+                                    endAngle: .degrees(rotation + 360)
+                                ),
+                                lineWidth: 2.5
+                            )
+                            .blur(radius: 0.9)
 
-                    islandShape
-                        .stroke(tint.opacity(isReminderAttention ? 0.18 + 0.16 * wave : 0.10), lineWidth: isReminderAttention ? 6 : 4)
-                        .blur(radius: isReminderAttention ? 8 : 6)
-                        .scaleEffect(isReminderAttention ? 1.0 + 0.012 * wave : 1.0)
+                        islandShape
+                            .stroke(tint.opacity(0.18 + 0.16 * wave), lineWidth: 6)
+                            .blur(radius: 8)
+                            .scaleEffect(1.0 + 0.012 * wave)
+                    }
                 }
-            }
+            } else {
+                islandShape
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(settings.darkGlassMode ? 0.28 : 0.42),
+                                task.priority.tintColor(settings: settings).opacity(0.10),
+                                .white.opacity(settings.darkGlassMode ? 0.12 : 0.20)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+                    .blur(radius: 0.25)
+                }
         }
     }
 
@@ -525,7 +541,7 @@ struct CapsuleIslandView: View {
             emptyExpandedRow()
         } else {
             let tasks = store.previewTasks(limit: 3)
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 6) {
                 ForEach(Array(tasks.enumerated()), id: \.element.id) { index, task in
                     previewTaskRow(task)
                 }
@@ -573,10 +589,10 @@ struct CapsuleIslandView: View {
         let tasks = store.previewTasks(limit: 3)
         guard !tasks.isEmpty else { return false }
 
-        let rowHeight: CGFloat = 30
-        let rowSpacing: CGFloat = 5
-        let contentY: CGFloat = 11
-        let contentHeight = max(expandedPanelHeightEstimate - 22, rowHeight)
+        let rowHeight: CGFloat = 31
+        let rowSpacing: CGFloat = 6
+        let contentY: CGFloat = 10
+        let contentHeight = max(expandedPanelHeightEstimate - 20, rowHeight)
         let stackHeight = CGFloat(tasks.count) * rowHeight + CGFloat(max(tasks.count - 1, 0)) * rowSpacing
         let rowStartY = contentY + max((contentHeight - stackHeight) / 2, 0)
         let rowStride = rowHeight + rowSpacing
@@ -589,9 +605,9 @@ struct CapsuleIslandView: View {
         }
 
         let actionFrame = CGRect(
-            x: 302,
+            x: 300,
             y: rowStartY + CGFloat(rowIndex) * rowStride,
-            width: 62,
+            width: 64,
             height: rowHeight
         )
         guard actionFrame.contains(point) else { return false }
@@ -650,9 +666,9 @@ struct CapsuleIslandView: View {
         }
 
         return [
-            .white.opacity(isVisuallyExpanded ? 0.88 : 0.78),
-            Color(red: 0.68, green: 0.94, blue: 1.0).opacity(isVisuallyExpanded ? 0.42 : 0.34),
-            .white.opacity(isVisuallyExpanded ? 0.30 : 0.24)
+            .white.opacity(isVisuallyExpanded ? 0.88 : 0.86),
+            Color(red: 0.68, green: 0.94, blue: 1.0).opacity(isVisuallyExpanded ? 0.42 : 0.40),
+            .white.opacity(isVisuallyExpanded ? 0.30 : 0.28)
         ]
     }
 
@@ -662,19 +678,19 @@ struct CapsuleIslandView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            .white.opacity(settings.darkGlassMode ? 0.48 : 0.82),
-                            .white.opacity(settings.darkGlassMode ? 0.22 : 0.42),
-                            .black.opacity(settings.darkGlassMode ? 0.40 : 0.24)
+                            .white.opacity(settings.darkGlassMode ? 0.48 : 0.86),
+                            .white.opacity(settings.darkGlassMode ? 0.22 : 0.48),
+                            .black.opacity(settings.darkGlassMode ? 0.40 : 0.26)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: isVisuallyExpanded ? 1.25 : 1.45
+                    lineWidth: isVisuallyExpanded ? 1.25 : 1.65
                 )
                 .padding(isVisuallyExpanded ? 0 : 1)
 
             islandShape
-                .stroke(.black.opacity(settings.darkGlassMode ? 0.22 : 0.13), lineWidth: 1.15)
+                .stroke(.black.opacity(settings.darkGlassMode ? 0.22 : 0.16), lineWidth: 1.25)
                 .blur(radius: 0.45)
                 .offset(y: 0.8)
                 .padding(isVisuallyExpanded ? 0 : 1)
@@ -692,9 +708,9 @@ struct CapsuleIslandView: View {
         }
 
         return [
-            Color.white.opacity(isVisuallyExpanded ? 0.105 : 0.095),
-            tint.opacity(isVisuallyExpanded ? 0.085 : 0.070),
-            Color.black.opacity(isVisuallyExpanded ? 0.018 : 0.014)
+            Color.white.opacity(isVisuallyExpanded ? 0.105 : 0.12),
+            tint.opacity(isVisuallyExpanded ? 0.085 : 0.12),
+            Color.black.opacity(isVisuallyExpanded ? 0.018 : 0.026)
         ]
     }
 
@@ -709,9 +725,9 @@ struct CapsuleIslandView: View {
         }
 
         return [
-            Color.white.opacity(0.34),
-            tint.opacity(0.26),
-            Color.white.opacity(0.16)
+            Color.white.opacity(0.40),
+            tint.opacity(0.34),
+            Color.white.opacity(0.20)
         ]
     }
 
@@ -763,8 +779,8 @@ struct CapsuleIslandView: View {
 
         return [
             Color.white.opacity(0.22),
-            tint.opacity(0.48),
-            tint.opacity(0.18)
+            tint.opacity(0.56),
+            tint.opacity(0.24)
         ]
     }
 
@@ -805,9 +821,9 @@ struct CapsuleIslandView: View {
                 Text("当前")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(capsuleSecondaryTextColor)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
-                    .background(.ultraThinMaterial, in: Capsule())
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(.ultraThinMaterial, in: Capsule())
             }
 
             if task.focusStartedAt != nil || task.focusSeconds > 0 {
@@ -847,13 +863,33 @@ struct CapsuleIslandView: View {
             }
         }
         .padding(.leading, 9)
-        .padding(.trailing, 7)
-        .frame(height: 30)
+        .padding(.trailing, 6)
+        .frame(height: 31)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(task.isCurrent ? 0.11 : 0.055), in: Capsule())
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(settings.darkGlassMode ? 0.13 : (task.isCurrent ? 0.26 : 0.18)),
+                    Color.white.opacity(settings.darkGlassMode ? 0.060 : (task.isCurrent ? 0.12 : 0.075))
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: Capsule()
+        )
         .overlay {
             Capsule()
-                .stroke(tint.opacity(task.isCurrent ? 0.22 : 0.12), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(settings.darkGlassMode ? 0.22 : 0.42),
+                            tint.opacity(task.isCurrent ? 0.34 : 0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         }
     }
 
@@ -989,13 +1025,14 @@ private struct IslandActionButton: View {
         Image(systemName: systemName)
             .font(.system(size: 12, weight: .bold))
             .foregroundStyle(foregroundColor.opacity(isActive ? 1 : 0.84))
-            .frame(width: 28, height: 28)
+            .frame(width: 29, height: 29)
             .background(.ultraThinMaterial, in: Circle())
-            .background(isActive ? foregroundColor.opacity(0.14) : Color.clear, in: Circle())
+            .background(isActive ? foregroundColor.opacity(0.16) : Color.white.opacity(0.035), in: Circle())
             .overlay {
                 Circle()
-                    .stroke(isActive ? foregroundColor.opacity(0.42) : .white.opacity(0.40), lineWidth: 1)
+                    .stroke(isActive ? foregroundColor.opacity(0.46) : .white.opacity(0.42), lineWidth: 1)
             }
+            .shadow(color: .black.opacity(0.08), radius: 5, x: 0, y: 3)
             .contentShape(Circle())
             .onTapGesture(perform: action)
             .help(help)
@@ -1012,17 +1049,28 @@ private struct IslandTaskActionButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(foregroundColor.opacity(systemName == "trash" ? 0.58 : 0.86))
-                .frame(width: 28, height: 28)
+                .foregroundStyle(taskActionTint)
+                .frame(width: 27, height: 27)
                 .background(.ultraThinMaterial, in: Circle())
+                .background(Color.white.opacity(0.030), in: Circle())
                 .overlay {
                     Circle()
-                        .stroke(.white.opacity(0.34), lineWidth: 1)
+                        .stroke(.white.opacity(0.36), lineWidth: 1)
                 }
                 .contentShape(Circle())
             }
         .buttonStyle(.plain)
         .help(help)
+    }
+
+    private var taskActionTint: Color {
+        if systemName == "checkmark" {
+            return Color(red: 0.02, green: 0.52, blue: 0.30)
+        }
+        if systemName == "trash" {
+            return foregroundColor.opacity(0.58)
+        }
+        return foregroundColor.opacity(0.86)
     }
 }
 

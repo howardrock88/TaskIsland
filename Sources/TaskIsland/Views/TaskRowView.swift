@@ -88,10 +88,22 @@ struct TaskRowView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(rowBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background {
+            rowGlassBackground(tint: tint)
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(tint.opacity(task.isCurrent ? 0.35 : 0.16), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(task.isCurrent ? 0.46 : 0.34),
+                            tint.opacity(task.isCurrent ? 0.34 : 0.16)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         }
         .onAppear {
             syncDrafts()
@@ -103,8 +115,37 @@ struct TaskRowView: View {
         }
     }
 
-    private var rowBackground: some ShapeStyle {
-        task.isCurrent ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(.ultraThinMaterial)
+    private func rowGlassBackground(tint: Color) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        return shape
+            .fill(task.isCurrent ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(.ultraThinMaterial))
+            .overlay {
+                shape
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(task.isCurrent ? 0.18 : 0.10),
+                                tint.opacity(task.isCurrent ? 0.075 : 0.032),
+                                .black.opacity(task.isCurrent ? 0.025 : 0.012)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .overlay {
+                shape
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.14),
+                                .clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
     }
 
     @ViewBuilder
@@ -163,12 +204,12 @@ struct TaskRowView: View {
     }
 
     private var rowActions: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Button {
                 toggleDetails()
             } label: {
                 Image(systemName: isShowingDetails ? "chevron.up" : "chevron.down")
-                    .frame(width: 22, height: 22)
+                    .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
             .help(isShowingDetails ? "收起详情" : "展开详情")
@@ -177,7 +218,7 @@ struct TaskRowView: View {
                 store.toggleFocus(task)
             } label: {
                 Image(systemName: task.focusStartedAt == nil ? "timer" : "pause.fill")
-                    .frame(width: 22, height: 22)
+                    .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.48, blue: 0.92)))
             .help(task.focusStartedAt == nil ? "开始专注" : "暂停专注")
@@ -188,7 +229,7 @@ struct TaskRowView: View {
                 store.complete(task)
             } label: {
                 Image(systemName: "checkmark")
-                    .frame(width: 22, height: 22)
+                    .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.68, blue: 0.34)))
             .help("完成任务")
@@ -197,7 +238,7 @@ struct TaskRowView: View {
                 store.delete(task)
             } label: {
                 Image(systemName: "trash")
-                    .frame(width: 22, height: 22)
+                    .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
             .help("删除任务")
@@ -666,10 +707,10 @@ struct TaskRowView: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
             .background(.ultraThinMaterial, in: Capsule())
-        .overlay {
-            Capsule()
-                .stroke(task.priority.tintColor(settings: settings).opacity(0.28), lineWidth: 1)
-        }
+            .overlay {
+                Capsule()
+                    .stroke(task.priority.tintColor(settings: settings).opacity(0.28), lineWidth: 1)
+            }
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
@@ -685,10 +726,12 @@ private struct TaskRowIconButtonStyle: ButtonStyle {
             .font(.system(size: 11.5, weight: .bold))
             .foregroundStyle(tint)
             .background(.ultraThinMaterial, in: Circle())
+            .background(Color.white.opacity(0.025), in: Circle())
             .overlay {
                 Circle()
                     .stroke(.white.opacity(configuration.isPressed ? 0.20 : 0.34), lineWidth: 1)
             }
+            .shadow(color: .black.opacity(configuration.isPressed ? 0.03 : 0.055), radius: 4, x: 0, y: 2)
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
             .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
     }
