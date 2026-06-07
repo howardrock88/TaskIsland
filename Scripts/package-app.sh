@@ -10,15 +10,32 @@ MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.png"
 ICONSET_DIR="$ROOT_DIR/.build/package/AppIcon.iconset"
+MIN_MACOS="${TASKISLAND_MIN_MACOS:-26.0}"
 
 cd "$ROOT_DIR"
-swift build -c release --product TaskIsland
+read -r -a BUILD_ARCHS <<< "${TASKISLAND_ARCHS:-$(uname -m)}"
+BUILT_BINARIES=()
+
+for ARCH in "${BUILD_ARCHS[@]}"; do
+    swift build -c release --product TaskIsland --triple "$ARCH-apple-macosx$MIN_MACOS"
+    ARCH_BINARY="$ROOT_DIR/.build/$ARCH-apple-macosx/release/TaskIsland"
+    if [[ ! -x "$ARCH_BINARY" ]]; then
+        echo "Missing release binary for $ARCH: $ARCH_BINARY" >&2
+        exit 1
+    fi
+    BUILT_BINARIES+=("$ARCH_BINARY")
+done
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
-cp "$ROOT_DIR/.build/release/TaskIsland" "$MACOS_DIR/TaskIsland"
+if [[ "${#BUILT_BINARIES[@]}" -gt 1 ]]; then
+    lipo -create "${BUILT_BINARIES[@]}" -output "$MACOS_DIR/TaskIsland"
+else
+    cp "${BUILT_BINARIES[0]}" "$MACOS_DIR/TaskIsland"
+fi
 chmod +x "$MACOS_DIR/TaskIsland"
+lipo -info "$MACOS_DIR/TaskIsland"
 
 if [[ -f "$ICON_SOURCE" ]]; then
     rm -rf "$ICONSET_DIR"
@@ -76,7 +93,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
         </dict>
     </array>
     <key>LSMinimumSystemVersion</key>
-    <string>26.0</string>
+    <string>$MIN_MACOS</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
     <key>NSHighResolutionCapable</key>
@@ -88,5 +105,23 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 PLIST
 
 printf 'APPL????' > "$CONTENTS_DIR/PkgInfo"
+
+if [[ "${TASKISLAND_SKIP_SIGN:-0}" == "1" ]]; then
+    echo "Warning: skipped code signing. Downloaded copies will not pass Gatekeeper."
+else
+    SIGN_IDENTITY="${TASKISLAND_APP_SIGN_IDENTITY:--}"
+    CODESIGN_ARGS=(--force --deep --sign "$SIGN_IDENTITY")
+
+    if [[ "$SIGN_IDENTITY" != "-" ]]; then
+        CODESIGN_ARGS+=(--options runtime --timestamp)
+    fi
+
+    codesign "${CODESIGN_ARGS[@]}" "$APP_DIR"
+    codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+
+    if [[ "$SIGN_IDENTITY" == "-" ]]; then
+        echo "Warning: app is ad-hoc signed. Set TASKISLAND_APP_SIGN_IDENTITY for distributable builds."
+    fi
+fi
 
 echo "Built $APP_DIR"

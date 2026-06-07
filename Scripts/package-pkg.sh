@@ -10,11 +10,12 @@ VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
 IDENTIFIER="local.taskisland"
 APP_DIR="$ROOT_DIR/.build/package/$APP_NAME.app"
 DIST_DIR="$ROOT_DIR/dist"
+PACKAGE_SUFFIX="${TASKISLAND_PACKAGE_SUFFIX:-}"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/taskisland-pkg.XXXXXX")"
 ROOT_STAGE="$WORK_DIR/root"
 SCRIPTS_DIR="$WORK_DIR/scripts"
 COMPONENT_PKG="$WORK_DIR/$PKG_BASENAME-component.pkg"
-PKG_PATH="$DIST_DIR/$PKG_BASENAME-$VERSION.pkg"
+PKG_PATH="$DIST_DIR/$PKG_BASENAME-$VERSION$PACKAGE_SUFFIX.pkg"
 
 cleanup() {
     rm -rf "$WORK_DIR"
@@ -24,7 +25,6 @@ trap cleanup EXIT
 cd "$ROOT_DIR"
 
 bash "$ROOT_DIR/Scripts/package-app.sh"
-codesign --force --deep --sign - "$APP_DIR"
 xattr -cr "$APP_DIR"
 
 mkdir -p "$DIST_DIR" "$ROOT_STAGE/Applications" "$ROOT_STAGE/Library/LaunchAgents" "$SCRIPTS_DIR"
@@ -41,7 +41,6 @@ cat > "$ROOT_STAGE/Library/LaunchAgents/$IDENTIFIER.agent.plist" <<PLIST
     <key>ProgramArguments</key>
     <array>
         <string>/usr/bin/open</string>
-        <string>-a</string>
         <string>/Applications/$APP_NAME.app</string>
     </array>
     <key>RunAtLoad</key>
@@ -72,7 +71,7 @@ if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ]; then
             /bin/launchctl asuser "$USER_ID" "$LSREGISTER" -f "$APP_PATH" >/dev/null 2>&1 || true
         fi
         /bin/launchctl asuser "$USER_ID" /usr/bin/mdimport "$APP_PATH" >/dev/null 2>&1 || true
-        /bin/launchctl asuser "$USER_ID" /usr/bin/open -a "/Applications/任务岛.app" >/dev/null 2>&1 || true
+        /bin/launchctl asuser "$USER_ID" /usr/bin/open "$APP_PATH" >/dev/null 2>&1 || true
     fi
 fi
 exit 0
@@ -89,10 +88,33 @@ pkgbuild \
     --filter '(^|/)\.DS_Store$' \
     "$COMPONENT_PKG"
 
-productbuild \
-    --package "$COMPONENT_PKG" \
-    "$PKG_PATH"
+if [[ -n "${TASKISLAND_INSTALLER_SIGN_IDENTITY:-}" ]]; then
+    productbuild \
+        --sign "$TASKISLAND_INSTALLER_SIGN_IDENTITY" \
+        --package "$COMPONENT_PKG" \
+        "$PKG_PATH"
+else
+    productbuild \
+        --package "$COMPONENT_PKG" \
+        "$PKG_PATH"
+fi
 
-pkgutil --check-signature "$PKG_PATH" >/dev/null || true
+if pkgutil --check-signature "$PKG_PATH"; then
+    :
+else
+    if [[ -n "${TASKISLAND_INSTALLER_SIGN_IDENTITY:-}" ]]; then
+        echo "Package signature verification failed." >&2
+        exit 1
+    fi
+    echo "Warning: package is unsigned. Set TASKISLAND_INSTALLER_SIGN_IDENTITY for distributable builds."
+fi
+
+if [[ -n "${TASKISLAND_NOTARY_PROFILE:-}" ]]; then
+    xcrun notarytool submit "$PKG_PATH" --keychain-profile "$TASKISLAND_NOTARY_PROFILE" --wait
+    xcrun stapler staple "$PKG_PATH"
+    spctl --assess --type install --verbose=4 "$PKG_PATH"
+else
+    echo "Warning: package was not notarized. Set TASKISLAND_NOTARY_PROFILE for public distribution."
+fi
 
 echo "Built $PKG_PATH"
