@@ -20,6 +20,13 @@
 
 ## 更新说明
 
+### 0.1.5 - 2026-06-07
+
+- 修复分发打包流程：`.app` 现在会在打包后签名并严格校验，`.dmg` / `.pkg` 不再把正式签名覆盖成 ad-hoc 签名。
+- 新增 Developer ID 签名和 Apple Notary Service 公证环境变量，便于构建可通过 Gatekeeper 的公开分发包。
+- 打包脚本改为从明确架构目录取 release 产物，并支持 `TASKISLAND_ARCHS`、`TASKISLAND_MIN_MACOS` 和 `TASKISLAND_PACKAGE_SUFFIX` 输出独立架构包。
+- 修正 `.pkg` 安装后启动命令，改为直接打开 `/Applications/任务岛.app`。
+
 ### 0.1.4 - 2026-06-04
 
 - 在保留数字岛、专注岛、行动岛三态结构的基础上收口视觉系统。
@@ -109,7 +116,8 @@
 
 ## 系统要求
 
-- macOS 26 或更新版本
+- Apple Silicon：macOS 26 或更新版本
+- Intel：macOS 15 或更新版本
 - Xcode / Swift 6.2 工具链
 
 ## 运行
@@ -140,7 +148,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.4.pkg
+open dist/TaskIsland-0.1.5.pkg
 ```
 
 构建 `.dmg`：
@@ -148,10 +156,33 @@ open dist/TaskIsland-0.1.4.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.4.dmg
+open dist/TaskIsland-0.1.5.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。
+
+本地构建默认使用 ad-hoc app 签名，`.pkg` 默认不签名，适合开发机自测。公开分发给其他用户时需要 Developer ID 和公证，例如：
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_DMG_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-dmg.sh
+```
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_INSTALLER_SIGN_IDENTITY="Developer ID Installer: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-pkg.sh
+```
+
+单独构建 Intel 版本包时使用：
+
+```sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-dmg.sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-pkg.sh
+```
 
 ## 检查
 
@@ -187,7 +218,7 @@ docs                        调研和项目资料
 
 ## 发布说明
 
-当前版本是本地构建版，未接入 Apple Developer ID 正式签名和公证。分发给其他用户前，建议使用 Developer ID Application / Installer 证书签名，并通过 Apple Notary Service 公证。
+本地构建版未接入 Apple Developer ID 正式签名和公证，下载到其他机器后会被 Gatekeeper 拦截。分发给其他用户前，必须使用 Developer ID Application / Installer 证书签名，并通过 Apple Notary Service 公证。
 
 ## 许可
 

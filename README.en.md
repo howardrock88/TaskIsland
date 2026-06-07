@@ -20,6 +20,13 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ## Release Notes
 
+### 0.1.5 - 2026-06-07
+
+- Fixed the distribution packaging flow: `.app` bundles are now signed and strictly verified after packaging, and `.dmg` / `.pkg` scripts no longer overwrite Developer ID signatures with ad-hoc signatures.
+- Added Developer ID signing and Apple Notary Service environment variables for building Gatekeeper-ready public releases.
+- Packaging now copies release binaries from explicit architecture directories and supports `TASKISLAND_ARCHS`, `TASKISLAND_MIN_MACOS`, and `TASKISLAND_PACKAGE_SUFFIX` for separate architecture packages.
+- Fixed the `.pkg` post-install launch command to open `/Applications/任务岛.app` directly.
+
 ### 0.1.4 - 2026-06-04
 
 - Refined the visual system while keeping the existing Number Island, Focus Island, and Action Island structure.
@@ -109,7 +116,8 @@ Customize quick-add shortcuts, choose export formats, refresh, import, export, i
 
 ## Requirements
 
-- macOS 26 or later
+- Apple Silicon: macOS 26 or later
+- Intel: macOS 15 or later
 - Xcode / Swift 6.2 toolchain
 
 ## Run
@@ -140,7 +148,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.4.pkg
+open dist/TaskIsland-0.1.5.pkg
 ```
 
 Build the `.dmg` image:
@@ -148,10 +156,33 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.4.dmg
+open dist/TaskIsland-0.1.5.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.
+
+Local builds use an ad-hoc app signature by default, and `.pkg` installers are unsigned by default. That is suitable for development-machine testing only. Public distribution needs Developer ID signing and notarization, for example:
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_DMG_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-dmg.sh
+```
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_INSTALLER_SIGN_IDENTITY="Developer ID Installer: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-pkg.sh
+```
+
+To build a separate Intel package:
+
+```sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-dmg.sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-pkg.sh
+```
 
 ## Checks
 
@@ -187,7 +218,7 @@ docs                        research and project notes
 
 ## Distribution Note
 
-This build is not yet signed and notarized with Apple Developer ID. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service.
+Local builds are not signed and notarized with Apple Developer ID, so Gatekeeper will block downloaded copies on other machines. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service.
 
 ## License
 
