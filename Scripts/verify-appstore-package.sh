@@ -42,6 +42,16 @@ plist_print() {
     /usr/libexec/PlistBuddy -c "Print :$key" "$plist" 2>/dev/null || true
 }
 
+profile_application_identifier() {
+    local profile_plist="$1"
+    local app_id
+    app_id="$(plist_print "$profile_plist" "Entitlements:application-identifier")"
+    if [[ -z "$app_id" ]]; then
+        app_id="$(plist_print "$profile_plist" "Entitlements:com.apple.application-identifier")"
+    fi
+    printf '%s' "$app_id"
+}
+
 normalize_sha1() {
     printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -d ':[:space:]'
 }
@@ -86,7 +96,7 @@ require_plist_value() {
     local actual
     actual="$(plist_print "$plist" "$key")"
     if [[ "$actual" == "$expected" ]]; then
-        ok "$label：$actual"
+        ok "${label}：$actual"
     else
         fail "$label 不匹配，期望 $expected，实际 ${actual:-empty}"
     fi
@@ -138,7 +148,7 @@ else
     fail "embedded.provisionprofile 不包含 App 签名证书：$APP_SIGN_SHA1"
 fi
 
-PROFILE_APP_ID="$(plist_print "$PROFILE_PLIST" "Entitlements:application-identifier")"
+PROFILE_APP_ID="$(profile_application_identifier "$PROFILE_PLIST")"
 if [[ "$PROFILE_APP_ID" == *".$BUNDLE_ID" ]]; then
     ok "embedded profile App ID 匹配：$PROFILE_APP_ID"
 else

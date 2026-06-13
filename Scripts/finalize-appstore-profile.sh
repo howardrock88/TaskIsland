@@ -54,6 +54,16 @@ set_env_value() {
     fi
 }
 
+profile_application_identifier() {
+    local profile_plist="$1"
+    local app_id
+    app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$profile_plist" 2>/dev/null || true)"
+    if [[ -z "$app_id" ]]; then
+        app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.application-identifier' "$profile_plist" 2>/dev/null || true)"
+    fi
+    printf '%s' "$app_id"
+}
+
 if [[ -z "$PROFILE_SOURCE" ]]; then
     candidates=()
     taskisland_candidates=()
@@ -95,12 +105,12 @@ fi
 
 PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST" 2>/dev/null || true)"
 PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST" 2>/dev/null || true)"
-PROFILE_APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$PROFILE_PLIST" 2>/dev/null || true)"
+PROFILE_APP_ID="$(profile_application_identifier "$PROFILE_PLIST")"
 PROFILE_TEAM_ID="$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' "$PROFILE_PLIST" 2>/dev/null || true)"
 PROFILE_EXPIRES="$(/usr/libexec/PlistBuddy -c 'Print :ExpirationDate' "$PROFILE_PLIST" 2>/dev/null || true)"
 
 if [[ -z "$PROFILE_APP_ID" ]]; then
-    echo "Provisioning profile does not contain an application-identifier entitlement." >&2
+    echo "Provisioning profile does not contain an application identifier entitlement." >&2
     exit 1
 fi
 
@@ -114,7 +124,9 @@ if /usr/libexec/PlistBuddy -c 'Print :ProvisionedDevices' "$PROFILE_PLIST" >/dev
 fi
 
 mkdir -p "$(dirname "$PROFILE_DEST")"
-cp "$PROFILE_SOURCE" "$PROFILE_DEST"
+if [[ "$(cd "$(dirname "$PROFILE_SOURCE")" && pwd)/$(basename "$PROFILE_SOURCE")" != "$(cd "$(dirname "$PROFILE_DEST")" && pwd)/$(basename "$PROFILE_DEST")" ]]; then
+    cp "$PROFILE_SOURCE" "$PROFILE_DEST"
+fi
 
 set_env_value "TASKISLAND_BUNDLE_ID" "$BUNDLE_ID"
 set_env_value "TASKISLAND_APPSTORE_PROVISIONING_PROFILE" "$PROFILE_DEST"

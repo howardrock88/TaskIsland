@@ -71,7 +71,7 @@ com.yuxiao.TaskIsland
 你本机现在有两个同名应用签名证书。当前 `AppStore/submission.env` 使用的是这个 SHA-1 指纹：
 
 ```text
-135BDFC94ED69E46F8EB625312F0553968045A73
+D358BFF86BA374109204030BFA807E223F99F087
 ```
 
 如果 Apple Developer 页面显示多个同名证书，优先选择和这个指纹/创建日期对应的证书。脚本也已经加了校验：如果 profile 里选到的证书和本机签 App 的证书不一致，正式打包会停止。

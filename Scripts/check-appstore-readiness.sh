@@ -83,6 +83,16 @@ has_codesign_identity_named() {
     security find-identity -v -p codesigning 2>/dev/null | grep -F -- "$name" >/dev/null
 }
 
+profile_application_identifier() {
+    local profile_plist="$1"
+    local app_id
+    app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$profile_plist" 2>/dev/null || true)"
+    if [[ -z "$app_id" ]]; then
+        app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.application-identifier' "$profile_plist" 2>/dev/null || true)"
+    fi
+    printf '%s' "$app_id"
+}
+
 check_url_reachable() {
     local url="$1"
     if ! command -v curl >/dev/null 2>&1; then
@@ -378,7 +388,7 @@ elif [[ -f "$PROVISIONING_PROFILE" ]]; then
     PROFILE_PLIST="$(mktemp "${TMPDIR:-/tmp}/taskisland-profile.XXXXXX")"
     if security cms -D -i "$PROVISIONING_PROFILE" > "$PROFILE_PLIST" 2>/dev/null; then
         ok "App Store provisioning profile 可解析"
-        PROFILE_APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$PROFILE_PLIST" 2>/dev/null || true)"
+        PROFILE_APP_ID="$(profile_application_identifier "$PROFILE_PLIST")"
         if [[ -n "$BUNDLE_ID" && -n "$PROFILE_APP_ID" ]]; then
             if [[ "$PROFILE_APP_ID" == *".$BUNDLE_ID" ]]; then
                 ok "provisioning profile 与 Bundle ID 匹配"

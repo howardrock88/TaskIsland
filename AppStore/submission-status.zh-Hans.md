@@ -4,22 +4,16 @@
 
 ## 当前结论
 
-工程、素材、文案、隐私说明、审核备注、出口合规说明和自动化脚本已经准备到“等待 Apple provisioning profile”的状态。
+工程、素材、文案、隐私说明、审核备注、出口合规说明、provisioning profile、签名和最终 `.pkg` 已经准备完成。
 
 当前自检结果：
 
 ```text
-Scripts/check-appstore-readiness.sh
-Result: 0 error(s), 1 warning(s)
+Scripts/check-appstore-readiness.sh --build-app
+Result: 0 error(s), 0 warning(s)
 ```
 
-唯一 warning：
-
-```text
-还没有设置 TASKISLAND_APPSTORE_PROVISIONING_PROFILE
-```
-
-这不是工程错误，而是必须从 Apple Developer 下载的账号侧文件。
+最终上传包已通过 `Scripts/verify-appstore-package.sh` 校验。
 
 ## 当前上架版本
 
@@ -58,54 +52,28 @@ dist/appstore/upload-kit/TaskIsland-AppStore-1.0-b1-upload-kit.zip
 - GitHub Pages 隐私政策和支持页备份
 - 素材清单 `metadata/asset-manifest.md`
 
-## 现在不能上传的东西
+## 现在可以上传的东西
 
-当前不应上传 `.pkg`，因为正式 App Store provisioning profile 还没有下载并嵌入。
-
-当前目录里故意不保留：
+Transporter 上传包：
 
 ```text
 dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
-profile 到位前，`Scripts/package-appstore.sh` 会主动停止，避免生成容易误传的非最终包。
-
-## 拿到 profile 后的收尾命令
-
-下载 profile 后，运行：
-
-```sh
-Scripts/finalize-appstore-profile.sh "/完整路径/TaskIsland_Mac_App_Store.provisionprofile"
-```
-
-这个脚本会自动：
-
-1. 验证 profile 是否匹配 `com.yuxiao.TaskIsland`
-2. 复制到 `证书/`
-3. 写入 `AppStore/submission.env`
-4. 运行 App Store 自检
-5. 生成正式 `.pkg`
-6. 运行最终上传包校验
-7. 重新生成上传资料包
-
-成功后会得到：
+上传资料包：
 
 ```text
-dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
+dist/appstore/upload-kit/TaskIsland-AppStore-1.0-b1-upload-kit.zip
 ```
-
-这个 `.pkg` 才是拖进 Transporter 的正式上传包。
 
 ## Apple 侧仍需本人处理
 
-1. 在 Apple Developer 创建/下载 Mac App Store provisioning profile。
-2. 在 App Store Connect 创建 App 记录。
-3. 完成 Paid Apps Agreement、税务和银行信息。
-4. 选择一次性付费价格档位。
-5. 上传中英文截图、视频、图标和商品页文案。
-6. 填 App Privacy、出口合规和年龄分级。
-7. 用 Transporter 上传正式 `.pkg`。
-8. 构建处理完成后提交审核。
+1. 确认 App Store Connect 商品页字段、截图和视频已保存。
+2. 确认 Paid Apps Agreement、税务和银行信息已生效。
+3. 选择一次性付费价格档位和销售范围。
+4. 填 App Privacy、出口合规和年龄分级。
+5. 用 Transporter 上传正式 `.pkg`。
+6. 构建处理完成后选择 build `1` 并提交审核。
 
 ## 中国大陆策略
 

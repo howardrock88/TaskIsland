@@ -67,6 +67,16 @@ profile_contains_certificate_sha1() {
     return 1
 }
 
+profile_application_identifier() {
+    local profile_plist="$1"
+    local app_id
+    app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$profile_plist" 2>/dev/null || true)"
+    if [[ -z "$app_id" ]]; then
+        app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.application-identifier' "$profile_plist" 2>/dev/null || true)"
+    fi
+    printf '%s' "$app_id"
+}
+
 if [[ -z "$BUNDLE_ID" ]]; then
     echo "Missing TASKISLAND_BUNDLE_ID, for example: com.yourname.TaskIsland" >&2
     exit 1
@@ -107,7 +117,7 @@ if [[ -n "$PROVISIONING_PROFILE" ]]; then
         echo "Provisioning profile cannot be decoded: $PROVISIONING_PROFILE" >&2
         exit 1
     fi
-    PROFILE_APP_ID="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$PROFILE_PLIST" 2>/dev/null || true)"
+    PROFILE_APP_ID="$(profile_application_identifier "$PROFILE_PLIST")"
     if [[ "$PROFILE_APP_ID" != *".$BUNDLE_ID" ]]; then
         echo "Provisioning profile App ID does not match $BUNDLE_ID: ${PROFILE_APP_ID:-empty}" >&2
         exit 1
