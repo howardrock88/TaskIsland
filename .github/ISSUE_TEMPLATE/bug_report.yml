@@ -1,0 +1,57 @@
+name: Problem report
+description: Report a problem while using TaskIsland.
+title: "[Problem]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TaskIsland. Please include the details below so the issue can be reproduced.
+  - type: input
+    id: app-version
+    attributes:
+      label: TaskIsland version
+      description: You can find this in the app or App Store product page.
+      placeholder: "0.1.7"
+    validations:
+      required: false
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "macOS 26.0"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem you saw.
+      placeholder: "Tell us what went wrong."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps that led to the problem.
+      placeholder: |
+        1. Open TaskIsland
+        2. Click ...
+        3. See ...
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: "What should have happened instead?"
+    validations:
+      required: false
+  - type: textarea
+    id: extras
+    attributes:
+      label: Screenshots or extra context
+      description: Add screenshots, recordings, or any extra notes if helpful.
+    validations:
+      required: false
