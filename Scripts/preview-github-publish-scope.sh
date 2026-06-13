@@ -85,7 +85,7 @@ print_ignored_presence "Sensitive or generated local files, should stay untracke
     dist/app-store-promo-assets \
     dist/appstore/assets \
     dist/appstore/upload-kit \
-    dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+    dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 
 cat <<'EOF'
 

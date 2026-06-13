@@ -197,7 +197,7 @@ dist/appstore/assets/screenshots/en-promo/
 等 provisioning profile 补齐后，我会重新生成：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 上传方式：

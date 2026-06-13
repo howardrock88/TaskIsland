@@ -24,7 +24,7 @@ Result: 0 error(s), 1 warning(s)
 ## 当前上架版本
 
 ```text
-App Store 版本号：0.1.7
+App Store 版本号：1.0
 构建号：1
 Bundle ID：com.yuxiao.TaskIsland
 Team ID：9PZ46S64H2
@@ -34,14 +34,14 @@ Team ID：9PZ46S64H2
 销售范围：先开放中国大陆以外国家/地区；中国大陆等 ICP/App 备案完成后再开放
 ```
 
-本次上架使用最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
+本次 App Store 版本 `1.0` 基于最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
 
 ## 现在可以使用的资料
 
 上传资料包：
 
 ```text
-dist/appstore/upload-kit/TaskIsland-AppStore-0.1.7-b1-upload-kit.zip
+dist/appstore/upload-kit/TaskIsland-AppStore-1.0-b1-upload-kit.zip
 ```
 
 这个 zip 当前包含：
@@ -65,7 +65,7 @@ dist/appstore/upload-kit/TaskIsland-AppStore-0.1.7-b1-upload-kit.zip
 当前目录里故意不保留：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 profile 到位前，`Scripts/package-appstore.sh` 会主动停止，避免生成容易误传的非最终包。
@@ -91,7 +91,7 @@ Scripts/finalize-appstore-profile.sh "/完整路径/TaskIsland_Mac_App_Store.pro
 成功后会得到：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 这个 `.pkg` 才是拖进 Transporter 的正式上传包。

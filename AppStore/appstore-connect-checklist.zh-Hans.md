@@ -9,7 +9,7 @@
 - 主语言：English (U.S.)
 - Bundle ID：`com.yuxiao.TaskIsland`
 - SKU：`taskisland-mac-001`
-- 版本号：`0.1.7`
+- 版本号：`1.0`
 - 构建号：`1`
 - 用户访问权限：Full Access
 
@@ -94,10 +94,10 @@
 profile 补齐后，正式目标包是：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
-当前上架版本采用最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
+当前 App Store 版本 `1.0` 基于最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
 
 截图和图标上传顺序见：
 

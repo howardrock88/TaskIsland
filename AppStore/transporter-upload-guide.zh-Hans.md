@@ -15,7 +15,7 @@
 目标上传包：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 ## 下载 Transporter

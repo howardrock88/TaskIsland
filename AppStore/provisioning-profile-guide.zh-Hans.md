@@ -117,7 +117,7 @@ Scripts/finalize-appstore-profile.sh "/完整路径/TaskIsland_Mac_App_Store.pro
 成功后的目标文件是：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 注意：`Scripts/package-appstore.sh` 会阻止在缺少 profile 的情况下生成正式上传包，避免误把未嵌入 profile 的测试包传到 Transporter。

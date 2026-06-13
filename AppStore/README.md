@@ -26,7 +26,7 @@ dist/appstore/
 
 根目录 `VERSION` 仍然代表当前 GitHub / 功能版本。App Store 版本和构建号可以单独通过 `TASKISLAND_APPSTORE_VERSION`、`TASKISLAND_APPSTORE_BUILD` 指定，不因为“准备上架”自动修改功能版本号。
 
-本次上架使用当前最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
+本次 App Store 版本使用 `1.0`，基于当前最新功能版 `0.1.7`，包含开源版 bug 修复和中英文界面切换功能。
 
 ## 本地配置文件
 
@@ -174,7 +174,7 @@ TaskIsland.app/Contents/embedded.provisionprofile
 - 技术支持 URL：`https://howardrock88.github.io/TaskIsland/en/support.html`
 - App 分类：效率
 - 价格：一次性付费档位
-- App Store 版本号：例如 `0.1.7`
+- App Store 版本号：例如 `1.0`
 - App Store 构建号：例如 `1`
 - 最低系统版本：`macOS 15.0`
 - 架构：默认生成 `arm64 x86_64` 通用 App，覆盖 Apple Silicon 和 Intel Mac。
@@ -281,7 +281,7 @@ Scripts/package-appstore.sh
 
 ```sh
 TASKISLAND_BUNDLE_ID="com.yourname.TaskIsland" \
-TASKISLAND_APPSTORE_VERSION="0.1.7" \
+TASKISLAND_APPSTORE_VERSION="1.0" \
 TASKISLAND_APPSTORE_BUILD="1" \
 TASKISLAND_APPSTORE_APP_SIGN_IDENTITY="Mac App Distribution: Your Name (TEAMID)" \
 TASKISLAND_APPSTORE_INSTALLER_SIGN_IDENTITY="Mac Installer Distribution: Your Name (TEAMID)" \
@@ -292,7 +292,7 @@ Scripts/package-appstore.sh
 构建成功后会生成：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 然后用 Transporter 或 App Store Connect 上传。

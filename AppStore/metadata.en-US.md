@@ -2,7 +2,7 @@
 
 This file prepares the English App Store product page for countries and regions outside China mainland. Confirm the final price, screenshots, and release scope before submission.
 
-This submission uses version `0.1.7`, including recent bug fixes and Chinese/English interface switching.
+This submission uses App Store version `1.0`, built from feature version `0.1.7`, including recent bug fixes and Chinese/English interface switching.
 
 ## Basic Information
 
@@ -14,7 +14,7 @@ This submission uses version `0.1.7`, including recent bug fixes and Chinese/Eng
 - Category: Productivity
 - Availability: Countries and regions outside China mainland first; China mainland after ICP/App filing is approved
 - Price: Paid one-time purchase, tier TBD
-- Version: `0.1.7`
+- Version: `1.0`
 - Build: `1`
 
 ## Keywords

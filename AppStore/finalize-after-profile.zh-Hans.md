@@ -34,13 +34,13 @@ Scripts/finalize-appstore-profile.sh "/完整路径/TaskIsland_Mac_App_Store.pro
 正式上传包：
 
 ```text
-dist/appstore/TaskIsland-AppStore-0.1.7-b1.pkg
+dist/appstore/TaskIsland-AppStore-1.0-b1.pkg
 ```
 
 完整上传资料包：
 
 ```text
-dist/appstore/upload-kit/TaskIsland-AppStore-0.1.7-b1-upload-kit.zip
+dist/appstore/upload-kit/TaskIsland-AppStore-1.0-b1-upload-kit.zip
 ```
 
 其中 `.pkg` 用于 Transporter；`.zip` 是给你自己上传商品页素材、文案和留档用的完整资料包。
