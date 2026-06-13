@@ -41,7 +41,7 @@ struct TaskRowView: View {
 
                     HStack(spacing: 6) {
                         if task.isCurrent {
-                            metadataBadge("当前", systemName: "smallcircle.filled.circle")
+                            metadataBadge(t("当前", "Current"), systemName: "smallcircle.filled.circle")
                         } else {
                             currentTaskButton
                         }
@@ -50,7 +50,7 @@ struct TaskRowView: View {
                             metadataBadge(shortDateText(dueAt), systemName: "calendar")
                         }
                         if let estimatedMinutes = task.estimatedMinutes {
-                            metadataBadge("\(estimatedMinutes) 分钟", systemName: "timer")
+                            metadataBadge(t("\(estimatedMinutes) 分钟", "\(estimatedMinutes) min"), systemName: "timer")
                         }
                         if task.focusStartedAt != nil || task.focusSeconds > 0 {
                             focusMetadataBadge
@@ -59,7 +59,7 @@ struct TaskRowView: View {
                             metadataBadge("\(task.completedSubtaskCount)/\(task.subtasks.count)", systemName: "checklist")
                         }
                         if let repeatRule = task.repeatRule {
-                            metadataBadge(repeatRule.title, systemName: "repeat")
+                            metadataBadge(repeatRule.localizedTitle(settings: settings), systemName: "repeat")
                         }
                         if let projectName = task.projectName, !projectName.isEmpty {
                             metadataBadge(projectName, systemName: "tray")
@@ -151,7 +151,7 @@ struct TaskRowView: View {
     @ViewBuilder
     private var titleEditor: some View {
         if isEditingTitle {
-            TextField("任务标题", text: $titleDraft)
+            TextField(t("任务标题", "Task title"), text: $titleDraft)
                 .textFieldStyle(.plain)
                 .font(.system(size: 14, weight: task.isCurrent ? .semibold : .regular))
                 .focused($isTitleFieldFocused)
@@ -183,7 +183,7 @@ struct TaskRowView: View {
                 .onTapGesture {
                     startTitleEdit()
                 }
-                .help("点击编辑任务标题")
+                .help(t("点击编辑任务标题", "Click to edit task title"))
         }
     }
 
@@ -212,16 +212,16 @@ struct TaskRowView: View {
                     .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
-            .help(isShowingDetails ? "收起详情" : "展开详情")
+            .help(isShowingDetails ? t("收起详情", "Collapse details") : t("展开详情", "Expand details"))
 
             Button {
-                store.toggleFocus(task)
+                store.toggleFocus(task, defaultMinutes: settings.defaultFocusMinutesInt)
             } label: {
                 Image(systemName: task.focusStartedAt == nil ? "timer" : "pause.fill")
                     .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.48, blue: 0.92)))
-            .help(task.focusStartedAt == nil ? "开始专注" : "暂停专注")
+            .help(task.focusStartedAt == nil ? t("开始专注", "Start focus") : t("暂停专注", "Pause focus"))
 
             priorityMenu
 
@@ -232,7 +232,7 @@ struct TaskRowView: View {
                     .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: Color(red: 0.16, green: 0.68, blue: 0.34)))
-            .help("完成任务")
+            .help(t("完成任务", "Complete task"))
 
             Button {
                 store.delete(task)
@@ -241,7 +241,7 @@ struct TaskRowView: View {
                     .frame(width: 21, height: 21)
             }
             .buttonStyle(TaskRowIconButtonStyle(tint: .secondary))
-            .help("删除任务")
+            .help(t("删除任务", "Delete task"))
         }
         .fixedSize()
     }
@@ -250,26 +250,29 @@ struct TaskRowView: View {
         Button {
             store.setTodayQueue(task, isInTodayQueue: !task.isInTodayQueue)
         } label: {
-            Label(task.isInTodayQueue ? "今天" : "加入今天", systemImage: task.isInTodayQueue ? "sun.max.fill" : "sun.max")
+            Label(
+                task.isInTodayQueue ? t("今天", "Today") : t("加入今天", "Add to Today"),
+                systemImage: task.isInTodayQueue ? "sun.max.fill" : "sun.max"
+            )
                 .font(.system(size: 10.5, weight: .semibold))
                 .foregroundStyle(task.isInTodayQueue ? Color.orange : Color.secondary)
                 .labelStyle(.titleAndIcon)
         }
         .buttonStyle(.plain)
-        .help(task.isInTodayQueue ? "移出今天队列" : "加入今天队列")
+        .help(task.isInTodayQueue ? t("移出今天队列", "Remove from Today") : t("加入今天队列", "Add to Today"))
     }
 
     private var currentTaskButton: some View {
         Button {
             store.setCurrent(task)
         } label: {
-            Label("设为当前", systemImage: "arrowtriangle.right.circle")
+            Label(t("设为当前", "Set Current"), systemImage: "arrowtriangle.right.circle")
                 .font(.system(size: 10.5, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
                 .labelStyle(.titleAndIcon)
         }
         .buttonStyle(.plain)
-        .help("把这条任务设为当前任务")
+        .help(t("把这条任务设为当前任务", "Set this as the current task"))
     }
 
     private var detailPanel: some View {
@@ -277,7 +280,7 @@ struct TaskRowView: View {
             focusControls
 
             HStack(spacing: 8) {
-                quickDateButton("今天", systemName: "sun.max") {
+                quickDateButton(t("今天", "Today"), systemName: "sun.max") {
                     let date = defaultDate(hour: 9, dayOffset: 0)
                     hasDueDateDraft = true
                     dueDateDraft = date
@@ -285,7 +288,7 @@ struct TaskRowView: View {
                     reminderDateDraft = date
                     store.setDueDate(task, dueAt: date, reminderAt: date)
                 }
-                quickDateButton("明天", systemName: "calendar.badge.plus") {
+                quickDateButton(t("明天", "Tomorrow"), systemName: "calendar.badge.plus") {
                     let date = defaultDate(hour: 9, dayOffset: 1)
                     hasDueDateDraft = true
                     dueDateDraft = date
@@ -293,7 +296,7 @@ struct TaskRowView: View {
                     reminderDateDraft = date
                     store.setDueDate(task, dueAt: date, reminderAt: date)
                 }
-                quickDateButton("清除日期", systemName: "calendar.badge.minus") {
+                quickDateButton(t("清除日期", "Clear Date"), systemName: "calendar.badge.minus") {
                     hasDueDateDraft = false
                     hasReminderDateDraft = false
                     store.setDueDate(task, dueAt: nil)
@@ -318,11 +321,11 @@ struct TaskRowView: View {
                 }
 
             HStack {
-                Text("备注")
+                Text(t("备注", "Notes"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button("保存") {
+                Button(t("保存", "Save")) {
                     store.updateNotes(task, notes: notesDraft)
                 }
                 .buttonStyle(.plain)
@@ -335,34 +338,34 @@ struct TaskRowView: View {
     private var metadataEditor: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: 8) {
-                TextField("项目", text: $projectDraft)
+                TextField(t("项目", "Project"), text: $projectDraft)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .padding(.horizontal, 9)
                     .padding(.vertical, 7)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                TextField("标签，用空格分隔", text: $tagsDraft)
+                TextField(t("标签，用空格分隔", "Tags, separated by spaces"), text: $tagsDraft)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .padding(.horizontal, 9)
                     .padding(.vertical, 7)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                TextField("专注分钟", text: $estimatedMinutesDraft)
+                TextField(t("专注分钟", "Focus min"), text: $estimatedMinutesDraft)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .frame(width: 72)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 7)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .help("本任务单独的专注时长；留空使用设置里的默认时长")
+                    .help(t("本任务单独的专注时长；留空使用设置里的默认时长", "Per-task focus duration; leave blank to use the default"))
             }
 
             HStack(spacing: 8) {
                 repeatMenu
                 Spacer()
-                Button("保存信息") {
+                Button(t("保存信息", "Save Info")) {
                     saveMetadataDrafts()
                 }
                 .buttonStyle(.plain)
@@ -374,27 +377,29 @@ struct TaskRowView: View {
     private var dateReminderEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Toggle("截止时间", isOn: $hasDueDateDraft)
+                Toggle(t("截止时间", "Due"), isOn: $hasDueDateDraft)
                     .toggleStyle(.checkbox)
                     .font(.system(size: 12, weight: .medium))
                     .frame(width: 76, alignment: .leading)
                 DatePicker("", selection: $dueDateDraft, displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
+                    .environment(\.locale, settings.locale)
                     .disabled(!hasDueDateDraft)
                     .opacity(hasDueDateDraft ? 1 : 0.42)
             }
 
             HStack(spacing: 8) {
-                Toggle("提醒时间", isOn: $hasReminderDateDraft)
+                Toggle(t("提醒时间", "Reminder"), isOn: $hasReminderDateDraft)
                     .toggleStyle(.checkbox)
                     .font(.system(size: 12, weight: .medium))
                     .frame(width: 76, alignment: .leading)
                 DatePicker("", selection: $reminderDateDraft, displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
+                    .environment(\.locale, settings.locale)
                     .disabled(!hasReminderDateDraft)
                     .opacity(hasReminderDateDraft ? 1 : 0.42)
                 Spacer()
-                Button("保存时间") {
+                Button(t("保存时间", "Save Time")) {
                     saveDateReminderDrafts()
                 }
                 .buttonStyle(.plain)
@@ -415,17 +420,17 @@ struct TaskRowView: View {
             Button {
                 store.setRepeatRule(task, repeatRule: nil)
             } label: {
-                Label("不重复", systemImage: "minus.circle")
+                Label(t("不重复", "No Repeat"), systemImage: "minus.circle")
             }
             ForEach(TaskRepeatRule.allCases) { repeatRule in
                 Button {
                     store.setRepeatRule(task, repeatRule: repeatRule)
                 } label: {
-                    Label(repeatRule.title, systemImage: "repeat")
+                    Label(repeatRule.localizedTitle(settings: settings), systemImage: "repeat")
                 }
             }
         } label: {
-            Label(task.repeatRule?.title ?? "不重复", systemImage: "repeat")
+            Label(task.repeatRule?.localizedTitle(settings: settings) ?? t("不重复", "No Repeat"), systemImage: "repeat")
                 .font(.system(size: 11, weight: .semibold))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
@@ -433,7 +438,7 @@ struct TaskRowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("修改重复规则")
+        .help(t("修改重复规则", "Change repeat rule"))
     }
 
     private var focusControls: some View {
@@ -446,8 +451,8 @@ struct TaskRowView: View {
 
                 Spacer(minLength: 8)
 
-                quickDateButton(task.focusStartedAt == nil ? "开始专注" : "暂停", systemName: task.focusStartedAt == nil ? "play.fill" : "pause.fill") {
-                    store.toggleFocus(task)
+                quickDateButton(task.focusStartedAt == nil ? t("开始专注", "Start Focus") : t("暂停", "Pause"), systemName: task.focusStartedAt == nil ? "play.fill" : "pause.fill") {
+                    store.toggleFocus(task, defaultMinutes: settings.defaultFocusMinutesInt)
                 }
             }
         }
@@ -459,11 +464,11 @@ struct TaskRowView: View {
                 Button {
                     store.postpone(task, option: option)
                 } label: {
-                    Label(option.title, systemImage: optionSystemName(option))
+                    Label(option.localizedTitle(settings: settings), systemImage: optionSystemName(option))
                 }
             }
         } label: {
-            Label("推迟", systemImage: "clock.arrow.circlepath")
+            Label(t("推迟", "Postpone"), systemImage: "clock.arrow.circlepath")
                 .font(.system(size: 11, weight: .semibold))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
@@ -471,7 +476,7 @@ struct TaskRowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("推迟任务")
+        .help(t("推迟任务", "Postpone task"))
     }
 
     private var subtaskEditor: some View {
@@ -510,11 +515,11 @@ struct TaskRowView: View {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
                     .foregroundStyle(.secondary)
-                TextField("新增子任务", text: $newSubtaskTitle)
+                TextField(t("新增子任务", "New subtask"), text: $newSubtaskTitle)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .onSubmit(addSubtask)
-                Button("添加") {
+                Button(t("添加", "Add")) {
                     addSubtask()
                 }
                 .buttonStyle(.plain)
@@ -541,21 +546,21 @@ struct TaskRowView: View {
     private func shortDateText(_ date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) {
-            return "今天 \(timeText(date))"
+            return t("今天 \(timeText(date))", "Today \(timeText(date))")
         }
         if calendar.isDateInTomorrow(date) {
-            return "明天 \(timeText(date))"
+            return t("明天 \(timeText(date))", "Tomorrow \(timeText(date))")
         }
 
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日 HH:mm"
+        formatter.locale = settings.locale
+        formatter.dateFormat = settings.isEnglish ? "MMM d HH:mm" : "M月d日 HH:mm"
         return formatter.string(from: date)
     }
 
     private func timeText(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = settings.locale
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
     }
@@ -564,18 +569,18 @@ struct TaskRowView: View {
         if task.focusStartedAt == nil {
             return formattedDuration(store.focusSeconds(for: task, now: now))
         }
-        return "剩 \(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt)))"
+        return t("剩 \(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt)))", "\(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt))) left")
     }
 
     private func focusDetailText(now: Date) -> String {
         let elapsed = formattedDuration(store.focusSeconds(for: task, now: now))
         let remaining = formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt))
         let targetMinutes = store.focusTargetMinutes(for: task, defaultMinutes: settings.defaultFocusMinutesInt)
-        let sourceText = task.estimatedMinutes == nil ? "默认" : "本任务"
+        let sourceText = task.estimatedMinutes == nil ? t("默认", "Default") : t("本任务", "This task")
         if task.focusStartedAt == nil {
-            return "已专注 \(elapsed)，\(sourceText)按 \(targetMinutes) 分钟一轮"
+            return t("已专注 \(elapsed)，\(sourceText)按 \(targetMinutes) 分钟一轮", "Focused \(elapsed). \(sourceText): \(targetMinutes) min per round")
         }
-        return "专注中：已用 \(elapsed)，剩余 \(remaining)"
+        return t("专注中：已用 \(elapsed)，剩余 \(remaining)", "Focusing: \(elapsed) used, \(remaining) left")
     }
 
     private func formattedDuration(_ seconds: TimeInterval) -> String {
@@ -583,7 +588,7 @@ struct TaskRowView: View {
         let minutes = totalSeconds / 60
         let remainingSeconds = totalSeconds % 60
         if minutes >= 60 {
-            return "\(minutes / 60)时\(minutes % 60)分"
+            return t("\(minutes / 60)时\(minutes % 60)分", "\(minutes / 60)h \(minutes % 60)m")
         }
         return "\(minutes):\(String(format: "%02d", remainingSeconds))"
     }
@@ -687,13 +692,17 @@ struct TaskRowView: View {
         return Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: base) ?? base
     }
 
+    private func t(_ chinese: String, _ english: String) -> String {
+        settings.localized(chinese, english)
+    }
+
     private var priorityMenu: some View {
         Menu {
             ForEach(TaskPriority.allCases) { priority in
                 Button {
                     store.setPriority(task, priority: priority)
                 } label: {
-                    Label(priority.title, systemImage: priority.symbolName)
+                    Label(priority.localizedTitle(settings: settings), systemImage: priority.symbolName)
                 }
             }
         } label: {
@@ -701,7 +710,7 @@ struct TaskRowView: View {
                 Circle()
                     .fill(task.priority.tintColor(settings: settings))
                     .frame(width: 7, height: 7)
-                Text(task.priority.shortTitle)
+                Text(task.priority.localizedShortTitle(settings: settings))
                     .font(.system(size: 11, weight: .semibold))
             }
             .padding(.horizontal, 7)
@@ -714,7 +723,7 @@ struct TaskRowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("修改优先级")
+        .help(t("修改优先级", "Change priority"))
     }
 }
 

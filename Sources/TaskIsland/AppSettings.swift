@@ -2,6 +2,22 @@ import Combine
 import Foundation
 import TaskIslandCore
 
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case chinese = "zh-Hans"
+    case english = "en"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .chinese:
+            return "中文"
+        case .english:
+            return "English"
+        }
+    }
+}
+
 @MainActor
 final class AppSettings: ObservableObject {
     @Published var showCapsule: Bool {
@@ -14,6 +30,10 @@ final class AppSettings: ObservableObject {
 
     @Published var darkGlassMode: Bool {
         didSet { defaults.set(darkGlassMode, forKey: Keys.darkGlassMode) }
+    }
+
+    @Published var appLanguage: AppLanguage {
+        didSet { defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage) }
     }
 
     @Published var defaultFocusMinutes: Double {
@@ -77,6 +97,8 @@ final class AppSettings: ObservableObject {
         showCapsule = defaults.object(forKey: Keys.showCapsule) as? Bool ?? true
         showTitleInMenuBar = defaults.object(forKey: Keys.showTitleInMenuBar) as? Bool ?? true
         darkGlassMode = defaults.object(forKey: Keys.darkGlassMode) as? Bool ?? false
+        let savedLanguage = defaults.object(forKey: Keys.appLanguage) as? String
+        appLanguage = AppLanguage(rawValue: savedLanguage ?? "") ?? .chinese
         defaultFocusMinutes = Self.clampedFocusMinutes(
             defaults.object(forKey: Keys.defaultFocusMinutes) as? Double ?? Self.standardFocusMinutes
         )
@@ -151,6 +173,18 @@ final class AppSettings: ObservableObject {
     static let automaticCapsuleTextColorHex = ""
     static let standardFocusMinutes = 25.0
 
+    var isEnglish: Bool {
+        appLanguage == .english
+    }
+
+    var locale: Locale {
+        Locale(identifier: isEnglish ? "en_US" : "zh_CN")
+    }
+
+    func localized(_ chinese: String, _ english: String) -> String {
+        isEnglish ? english : chinese
+    }
+
     var defaultFocusMinutesInt: Int {
         Self.focusMinutesInt(defaultFocusMinutes)
     }
@@ -183,6 +217,7 @@ final class AppSettings: ObservableObject {
         static let showCapsule = "showCapsule"
         static let showTitleInMenuBar = "showTitleInMenuBar"
         static let darkGlassMode = "darkGlassMode"
+        static let appLanguage = "appLanguage"
         static let defaultFocusMinutes = "defaultFocusMinutes"
         static let quickAddShortcutKeyCode = "quickAddShortcutKeyCode"
         static let quickAddShortcutModifiersRawValue = "quickAddShortcutModifiersRawValue"

@@ -211,6 +211,11 @@ private func runChecks() throws {
         store.stopFocus(task, now: stop)
         require(store.activeFocusTask == nil, "Stopped focus task stayed active")
         require(store.focusAttentionTask == nil, "Stopped focus task stayed in attention display")
+        let restart = Date(timeIntervalSince1970: 800)
+        store.startFocus(task, now: restart)
+        require(Int(store.focusSeconds(for: task, now: restart)) == 0, "Stopped focus task did not start a fresh round")
+        require(Int(store.focusRemainingSeconds(for: task, now: restart, defaultMinutes: 45)) == 1500, "Fresh focus round did not reset remaining time")
+        store.stopFocus(task, now: restart)
 
         guard let defaultTask = store.addTask(title: "阅读资料") else {
             fatalError("Default focus task was not created")

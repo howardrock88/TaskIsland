@@ -14,11 +14,28 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 - **Task panel views**: All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
 - **Rich task details**: notes, arbitrary due date, arbitrary reminder time, repeat rule, project, tags, estimated focus minutes, postpone, and “set as current”.
 - **Custom appearance**: dark glass mode, island transparency, background color, text color, priority colors, top position, and drag placement.
+- **Chinese / English UI**: switch between Chinese and English in Settings. The main UI, islands, quick add, app menu, notifications, and shortcut settings update immediately.
 - **Local-first data**: SwiftData storage, no account required; JSON, Markdown, and CSV import / export.
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
 - **Installable builds**: scripts generate `.app`, `.pkg`, and `.dmg` packages for `/Applications/任务岛.app`.
 
 ## Release Notes
+
+### 0.1.7 - 2026-06-13
+
+- Added an interface language setting with Chinese and English options; changes apply immediately.
+- Localized the floating island, task panel, task rows, task details, quick add, menu bar, app menu, reminder notifications, and shortcut settings.
+- Dates, focus duration, priorities, repeat rules, postpone options, and import / export messages now follow the selected language.
+- Task content itself is not translated, so existing user data stays untouched.
+
+### 0.1.6 - 2026-06-11
+
+- Added a focus-completion attention state: when a focus timer finishes naturally, Focus Island stays visible until the user confirms with Done.
+- Added a stronger focus-completion animation with full-width sweep light, flowing border highlights, and a pulsing heartbeat-style outline.
+- Strengthened the completion sound to 5 notification chimes and fixed rapid replay cases where only 1-2 sounds were audible.
+- Fixed a focus-completion transition where Focus Island could briefly shrink back to Number Island, leaving only the sound cue visible.
+- Fixed previously focused tasks starting as immediately complete; restarting after Stop now begins a fresh round, while paused focus can still resume the current round.
+- Simplified the completion interaction by removing the duplicate `×` button. The Done button now directly dismisses Focus Island without opening the task panel.
 
 ### 0.1.5 - 2026-06-07
 
@@ -116,7 +133,7 @@ Customize quick-add shortcuts, choose export formats, refresh, import, export, i
 
 ## Requirements
 
-- Apple Silicon: macOS 26 or later
+- Apple Silicon: macOS 15 or later
 - Intel: macOS 15 or later
 - Xcode / Swift 6.2 toolchain
 
@@ -148,7 +165,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.5.pkg
+open dist/github/TaskIsland-0.1.7.pkg
 ```
 
 Build the `.dmg` image:
@@ -156,7 +173,7 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.5.dmg
+open dist/github/TaskIsland-0.1.7.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.
@@ -183,6 +200,8 @@ To build a separate Intel package:
 TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-dmg.sh
 TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-pkg.sh
 ```
+
+The Mac App Store channel is kept separate from GitHub Release packages. App Store-specific files, submission notes, the local configuration template, and upload-package output are documented in [AppStore/README.md](AppStore/README.md).
 
 ## Checks
 
@@ -214,11 +233,12 @@ Scripts                     packaging and README image generation scripts
 assets/posters              GitHub presentation posters
 assets/screenshots          GitHub interface screenshots
 docs                        research and project notes
+AppStore                    Mac App Store channel configuration and submission notes
 ```
 
 ## Distribution Note
 
-Local builds are not signed and notarized with Apple Developer ID, so Gatekeeper will block downloaded copies on other machines. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service.
+Local builds are not signed and notarized with Apple Developer ID, so Gatekeeper will block downloaded copies on other machines. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service. The Mac App Store channel uses the separate `AppStore/` configuration and `dist/appstore/` output directory.
 
 ## License
 

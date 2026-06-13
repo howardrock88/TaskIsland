@@ -8,13 +8,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        AppMenuController.install()
 
         do {
             let store = try TaskStore()
             let settings = AppSettings()
             self.store = store
             self.settings = settings
+            AppMenuController.install(settings: settings)
             AppCoordinator.shared.start(store: store, settings: settings)
         } catch {
             let alert = NSAlert()
@@ -51,7 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             store?.addTask(title: title, notes: notes, priority: priority)
         case "focus", "start":
             if let currentTask = store?.currentTask {
-                store?.startFocus(currentTask)
+                store?.startFocus(currentTask, defaultMinutes: settings?.defaultFocusMinutesInt ?? 25)
             }
         case "complete", "done":
             if let currentTask = store?.currentTask {

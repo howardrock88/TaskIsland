@@ -14,11 +14,28 @@
 - **任务面板**：支持全部、今天、建议、高优、即将、无日期、标签、项目、已完成和回顾视图。
 - **任务详情**：支持备注、任意截止时间、任意提醒时间、重复规则、项目、标签、预计专注分钟、推迟、设为当前。
 - **可自定义外观**：支持暗夜玻璃模式、悬浮岛透明度、背景颜色、文字颜色、优先级颜色、顶部位置和拖拽摆放。
+- **中英文界面**：设置里可切换中文或 English，主要界面、悬浮岛、快速新增、系统菜单和通知提示会即时跟随。
 - **本地优先**：使用 SwiftData 本地存储，不依赖账号；支持 JSON、Markdown、CSV 导入导出。
 - **系统集成**：支持 Apple 提醒事项导入/导出、本地通知、`taskisland://` URL Scheme、登录启动安装配置。
 - **可打包安装**：提供 `.app`、`.pkg`、`.dmg` 打包脚本，可安装到 `/Applications/任务岛.app`。
 
 ## 更新说明
+
+### 0.1.7 - 2026-06-13
+
+- 新增界面语言设置，可在中文和 English 之间切换，切换后立即生效。
+- 悬浮岛、任务面板、任务行、任务详情、快速新增、菜单栏、系统菜单、提醒通知和快捷键设置接入中英文文案。
+- 日期、专注时长、优先级、重复规则、推迟选项、导入导出提示等常用文案会跟随语言显示。
+- 任务内容本身不会被翻译，避免修改用户已有数据。
+
+### 0.1.6 - 2026-06-11
+
+- 新增专注结束提醒态：专注计时自然结束后，专注岛会保留在桌面上，直到用户点击“完成”确认。
+- 新增专注完成动画：专注岛出现从左到右的扫光、流动高光边框和跳动脉冲线，提升到点提醒的可见性。
+- 声音提醒增强为 5 次连续提示，并修复系统快速连播时只响 1-2 次的问题。
+- 修复专注结束时专注岛先缩回数字岛、只听到声音但看不到动画的问题。
+- 修复已专注过的任务再次开始时误判为立即完成的问题；停止后的再次开始会开启新一轮，暂停后的继续仍保留本轮进度。
+- 简化专注完成交互：移除重复的 `×` 按钮，只保留“完成”确认按钮；点击后直接关闭专注岛，不再误打开任务面板。
 
 ### 0.1.5 - 2026-06-07
 
@@ -116,7 +133,7 @@
 
 ## 系统要求
 
-- Apple Silicon：macOS 26 或更新版本
+- Apple Silicon：macOS 15 或更新版本
 - Intel：macOS 15 或更新版本
 - Xcode / Swift 6.2 工具链
 
@@ -148,7 +165,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.5.pkg
+open dist/github/TaskIsland-0.1.7.pkg
 ```
 
 构建 `.dmg`：
@@ -156,7 +173,7 @@ open dist/TaskIsland-0.1.5.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.5.dmg
+open dist/github/TaskIsland-0.1.7.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。
@@ -183,6 +200,8 @@ Scripts/package-pkg.sh
 TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-dmg.sh
 TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-pkg.sh
 ```
+
+Mac App Store 渠道不和 GitHub Release 包混用。App Store 专用文件、提交说明、本地配置模板和上传包输出位置见 [AppStore/README.md](AppStore/README.md)。
 
 ## 检查
 
@@ -214,11 +233,12 @@ Scripts                     打包与 README 图片生成脚本
 assets/posters              GitHub 展示海报
 assets/screenshots          GitHub 界面截图
 docs                        调研和项目资料
+AppStore                    Mac App Store 渠道配置和提交说明
 ```
 
 ## 发布说明
 
-本地构建版未接入 Apple Developer ID 正式签名和公证，下载到其他机器后会被 Gatekeeper 拦截。分发给其他用户前，必须使用 Developer ID Application / Installer 证书签名，并通过 Apple Notary Service 公证。
+本地构建版未接入 Apple Developer ID 正式签名和公证，下载到其他机器后会被 Gatekeeper 拦截。分发给其他用户前，必须使用 Developer ID Application / Installer 证书签名，并通过 Apple Notary Service 公证。Mac App Store 渠道使用独立的 `AppStore/` 配置和 `dist/appstore/` 输出目录。
 
 ## 许可
 

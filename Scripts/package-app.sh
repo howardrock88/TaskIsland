@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
+APP_VERSION="${TASKISLAND_APP_VERSION:-$VERSION}"
+APP_BUILD="${TASKISLAND_APP_BUILD:-$APP_VERSION}"
 APP_DISPLAY_NAME="任务岛"
 APP_DIR="$ROOT_DIR/.build/package/$APP_DISPLAY_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
@@ -10,7 +12,8 @@ MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.png"
 ICONSET_DIR="$ROOT_DIR/.build/package/AppIcon.iconset"
-MIN_MACOS="${TASKISLAND_MIN_MACOS:-26.0}"
+MIN_MACOS="${TASKISLAND_MIN_MACOS:-15.0}"
+BUNDLE_ID="${TASKISLAND_BUNDLE_ID:-local.taskisland.app}"
 
 cd "$ROOT_DIR"
 read -r -a BUILD_ARCHS <<< "${TASKISLAND_ARCHS:-$(uname -m)}"
@@ -64,7 +67,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <key>CFBundleExecutable</key>
     <string>TaskIsland</string>
     <key>CFBundleIdentifier</key>
-    <string>local.taskisland.app</string>
+    <string>$BUNDLE_ID</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleIconFile</key>
@@ -78,9 +81,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>$VERSION</string>
+    <string>$APP_VERSION</string>
     <key>CFBundleVersion</key>
-    <string>$VERSION</string>
+    <string>$APP_BUILD</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
@@ -100,6 +103,10 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <true/>
     <key>NSRemindersUsageDescription</key>
     <string>任务岛需要访问提醒事项，用于把本地任务导入或导出到系统提醒事项。</string>
+    <key>NSRemindersFullAccessUsageDescription</key>
+    <string>任务岛需要完整提醒事项访问权限，用于读取未完成提醒事项并把任务导出为系统提醒。</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 </dict>
 </plist>
 PLIST

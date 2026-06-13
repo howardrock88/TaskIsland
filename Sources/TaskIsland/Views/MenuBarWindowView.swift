@@ -102,6 +102,7 @@ struct MenuBarWindowView: View {
                     VStack(spacing: 12) {
                         settingsDisplaySection
                             .id(TaskPanelSettingsAnchor.display)
+                        settingsLanguageSection
                         settingsFocusSection
                             .id(TaskPanelSettingsAnchor.focus)
                         settingsPrioritySection
@@ -138,6 +139,10 @@ struct MenuBarWindowView: View {
         }
     }
 
+    private func t(_ chinese: String, _ english: String) -> String {
+        settings.localized(chinese, english)
+    }
+
     private var header: some View {
         HStack(spacing: 12) {
             taskHeaderTitle
@@ -157,7 +162,7 @@ struct MenuBarWindowView: View {
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(GlassIconButtonStyle())
-            .help("设置")
+            .help(t("设置", "Settings"))
 
             Button {
                 onDismiss()
@@ -167,7 +172,7 @@ struct MenuBarWindowView: View {
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(GlassIconButtonStyle())
-            .help("隐藏面板")
+            .help(t("隐藏面板", "Hide panel"))
         }
         .padding(.horizontal, 2)
     }
@@ -182,7 +187,7 @@ struct MenuBarWindowView: View {
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(GlassIconButtonStyle())
-            .help("返回任务")
+            .help(t("返回任务", "Back to tasks"))
 
             settingsHeaderTitle
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -201,7 +206,7 @@ struct MenuBarWindowView: View {
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(GlassIconButtonStyle())
-            .help("隐藏面板")
+            .help(t("隐藏面板", "Hide panel"))
         }
         .padding(.horizontal, 2)
     }
@@ -224,7 +229,7 @@ struct MenuBarWindowView: View {
             .frame(width: 34, height: 34)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("任务岛")
+                Text(t("任务岛", "TaskIsland"))
                     .font(.system(size: 16, weight: .semibold))
                     .lineLimit(1)
 
@@ -235,22 +240,22 @@ struct MenuBarWindowView: View {
             }
         }
         .contentShape(Rectangle())
-        .help("拖动面板")
+        .help(t("拖动面板", "Drag panel"))
     }
 
     private var settingsHeaderTitle: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("设置")
+            Text(t("设置", "Settings"))
                 .font(.system(size: 16, weight: .semibold))
                 .lineLimit(1)
 
-            Text("任务岛偏好")
+            Text(t("任务岛偏好", "TaskIsland Preferences"))
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
         .contentShape(Rectangle())
-        .help("拖动面板")
+        .help(t("拖动面板", "Drag panel"))
     }
 
     private var panelDragGesture: some Gesture {
@@ -268,7 +273,7 @@ struct MenuBarWindowView: View {
             Image(systemName: "plus")
                 .foregroundStyle(.secondary)
 
-            TextField("明天 10点 发周报 #工作 !高 /30m", text: $newTaskTitle)
+            TextField(t("明天 10点 发周报 #工作 !高 /30m", "Tomorrow 10am weekly report #work !high /30m"), text: $newTaskTitle)
                 .textFieldStyle(.plain)
                 .focused($isAddFieldFocused)
                 .onSubmit(addTask)
@@ -283,7 +288,7 @@ struct MenuBarWindowView: View {
             }
             .buttonStyle(.plain)
             .disabled(newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .help("新增任务")
+            .help(t("新增任务", "Add task"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
@@ -300,7 +305,7 @@ struct MenuBarWindowView: View {
                 .frame(width: 30, height: 30)
         }
         .buttonStyle(GlassIconButtonStyle(isActive: panelState.isPinned))
-        .help(panelState.isPinned ? "取消固定面板" : "固定面板")
+        .help(panelState.isPinned ? t("取消固定面板", "Unpin panel") : t("固定面板", "Pin panel"))
     }
 
     private var taskList: some View {
@@ -330,7 +335,7 @@ struct MenuBarWindowView: View {
                 } else if taskViewMode == .projects {
                     projectSections
                 } else {
-                    flatTaskSection(title: taskViewMode.title, systemImage: taskViewMode.systemImage, tasks: displayedTasks)
+                    flatTaskSection(title: taskViewMode.localizedTitle(settings: settings), systemImage: taskViewMode.systemImage, tasks: displayedTasks)
                 }
 
                 if taskViewMode != .all, taskViewMode != .completed, !displayedCompletedTasks.isEmpty {
@@ -349,7 +354,7 @@ struct MenuBarWindowView: View {
                     Button {
                         taskViewMode = mode
                     } label: {
-                        Label(mode.title, systemImage: mode.systemImage)
+                        Label(mode.localizedTitle(settings: settings), systemImage: mode.systemImage)
                             .frame(minWidth: 58)
                     }
                     .buttonStyle(SegmentedGlassButtonStyle(isSelected: taskViewMode == mode))
@@ -395,7 +400,7 @@ struct MenuBarWindowView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("搜索标题、备注、标签或项目", text: $searchText)
+            TextField(t("搜索标题、备注、标签或项目", "Search title, notes, tags, or project"), text: $searchText)
                 .textFieldStyle(.plain)
             if !searchText.isEmpty {
                 Button {
@@ -405,7 +410,7 @@ struct MenuBarWindowView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("清空搜索")
+                .help(t("清空搜索", "Clear search"))
             }
         }
         .font(.system(size: 12.5, weight: .medium))
@@ -427,12 +432,12 @@ struct MenuBarWindowView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text(focusTask?.title ?? "暂无当前任务")
+                        Text(focusTask?.title ?? t("暂无当前任务", "No current task"))
                             .font(.system(size: 12.5, weight: .semibold))
                             .lineLimit(1)
 
                         if focusTask != nil {
-                            Text(isActivelyFocusing ? "专注中" : "当前任务")
+                            Text(isActivelyFocusing ? t("专注中", "Focusing") : t("当前任务", "Current"))
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundStyle(isActivelyFocusing ? Color.accentColor : .secondary)
                                 .padding(.horizontal, 6)
@@ -452,16 +457,16 @@ struct MenuBarWindowView: View {
                     HStack(spacing: 6) {
                         focusControlButton(
                             systemName: focusTask.focusStartedAt == nil ? "play.fill" : "pause.fill",
-                            help: focusTask.focusStartedAt == nil ? "开始专注" : "暂停专注",
+                            help: focusTask.focusStartedAt == nil ? t("开始专注", "Start focus") : t("暂停专注", "Pause focus"),
                             isActive: focusTask.focusStartedAt != nil
                         ) {
-                            store.toggleFocus(focusTask)
+                            store.toggleFocus(focusTask, defaultMinutes: settings.defaultFocusMinutesInt)
                         }
 
                         if focusTask.focusStartedAt != nil || focusTask.focusSeconds > 0 {
                             focusControlButton(
                                 systemName: "stop.fill",
-                                help: "停止专注"
+                                help: t("停止专注", "Stop focus")
                             ) {
                                 store.stopFocus(focusTask)
                             }
@@ -496,7 +501,7 @@ struct MenuBarWindowView: View {
             HStack(spacing: 7) {
                 Image(systemName: "sun.max.fill")
                     .foregroundStyle(.orange)
-                Text("今天")
+                Text(t("今天", "Today"))
                     .font(.system(size: 12, weight: .semibold))
                 Text("\(store.todayTasks.count)")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -523,7 +528,7 @@ struct MenuBarWindowView: View {
                     Circle()
                         .fill(priority.tintColor(settings: settings))
                         .frame(width: 8, height: 8)
-                    Text(priority.title)
+                    Text(priority.localizedTitle(settings: settings))
                         .font(.system(size: 12, weight: .semibold))
                     Text("\(tasks.count)")
                         .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -573,14 +578,14 @@ struct MenuBarWindowView: View {
                 HStack(spacing: 7) {
                     Image(systemName: "checkmark.circle")
                         .foregroundStyle(.secondary)
-                    Text("已完成")
+                    Text(t("已完成", "Completed"))
                         .font(.system(size: 12, weight: .semibold))
                     Text("\(tasks.count)")
                         .font(.system(size: 11, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text(isExpanded ? "收起" : "展开")
+                    Text(isExpanded ? t("收起", "Collapse") : t("展开", "Expand"))
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.secondary)
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -591,13 +596,14 @@ struct MenuBarWindowView: View {
             }
             .buttonStyle(.plain)
             .disabled(taskViewMode == .completed || isSearching)
-            .help(isExpanded ? "收起已完成任务" : "展开已完成任务")
+            .help(isExpanded ? t("收起已完成任务", "Collapse completed tasks") : t("展开已完成任务", "Expand completed tasks"))
             .padding(.horizontal, 2)
 
             if isExpanded {
                 ForEach(tasks, id: \.id) { task in
                     CompletedTaskRow(task: task)
                         .environmentObject(store)
+                        .environmentObject(settings)
                 }
             }
         }
@@ -637,17 +643,17 @@ struct MenuBarWindowView: View {
         let review = store.dailyReview()
         return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                reviewMetric("完成", value: "\(review.completedToday.count)", systemImage: "checkmark.circle.fill", tint: .green)
-                reviewMetric("专注", value: formattedDuration(review.focusSeconds), systemImage: "timer", tint: .blue)
-                reviewMetric("推迟", value: "\(review.postponedToday.count)", systemImage: "clock.arrow.circlepath", tint: .orange)
+                reviewMetric(t("完成", "Done"), value: "\(review.completedToday.count)", systemImage: "checkmark.circle.fill", tint: .green)
+                reviewMetric(t("专注", "Focus"), value: formattedDuration(review.focusSeconds), systemImage: "timer", tint: .blue)
+                reviewMetric(t("推迟", "Postponed"), value: "\(review.postponedToday.count)", systemImage: "clock.arrow.circlepath", tint: .orange)
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Label("今天完成", systemImage: "checklist.checked")
+                Label(t("今天完成", "Completed today"), systemImage: "checklist.checked")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
                 if review.completedToday.isEmpty {
-                    reviewEmptyText("还没有完成记录。")
+                    reviewEmptyText(t("还没有完成记录。", "No completed tasks yet."))
                 } else {
                     ForEach(review.completedToday.prefix(4), id: \.id) { task in
                         reviewTaskLine(task.title, systemImage: "checkmark")
@@ -656,11 +662,11 @@ struct MenuBarWindowView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Label("明天建议关注", systemImage: "calendar.badge.clock")
+                Label(t("明天建议关注", "Suggested for tomorrow"), systemImage: "calendar.badge.clock")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
                 if review.tomorrowTasks.isEmpty {
-                    reviewEmptyText("明天暂时没有安排。")
+                    reviewEmptyText(t("明天暂时没有安排。", "Nothing scheduled for tomorrow yet."))
                 } else {
                     ForEach(review.tomorrowTasks.prefix(4), id: \.id) { task in
                         reviewTaskLine(task.title, systemImage: "arrow.right")
@@ -673,22 +679,40 @@ struct MenuBarWindowView: View {
     }
 
     private var settingsDisplaySection: some View {
-        settingsGroup(title: "显示", systemImage: "sparkles") {
-            Toggle("显示悬浮岛", isOn: $settings.showCapsule)
+        settingsGroup(title: t("显示", "Display"), systemImage: "sparkles") {
+            Toggle(t("显示悬浮岛", "Show Floating Island"), isOn: $settings.showCapsule)
             Divider()
                 .opacity(0.26)
-            Toggle("菜单栏标题", isOn: $settings.showTitleInMenuBar)
+            Toggle(t("菜单栏标题", "Menu Bar Title"), isOn: $settings.showTitleInMenuBar)
             Divider()
                 .opacity(0.26)
-            Toggle("暗夜模式", isOn: $settings.darkGlassMode)
+            Toggle(t("暗夜模式", "Dark Mode"), isOn: $settings.darkGlassMode)
+        }
+    }
+
+    private var settingsLanguageSection: some View {
+        settingsGroup(title: t("语言", "Language"), systemImage: "globe") {
+            VStack(alignment: .leading, spacing: 10) {
+                Picker(t("界面语言", "Interface Language"), selection: $settings.appLanguage) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.title).tag(language)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Text(t("切换后立即生效。任务内容不会被翻译，只切换界面语言。", "Changes apply immediately. Task content stays as written; only the interface language changes."))
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
     private var settingsCapsuleSection: some View {
-        settingsGroup(title: "悬浮岛", systemImage: "capsule") {
+        settingsGroup(title: t("悬浮岛", "Floating Island"), systemImage: "capsule") {
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
-                    Text("顶部间距")
+                    Text(t("顶部间距", "Top Offset"))
                     Slider(value: capsuleYOffsetBinding, in: 0...80, step: 1)
                     Text("\(Int(settings.capsuleYOffset))")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -700,7 +724,7 @@ struct MenuBarWindowView: View {
                     .opacity(0.26)
 
                 HStack(spacing: 12) {
-                    Text("透明度")
+                    Text(t("透明度", "Transparency"))
                     Slider(value: capsuleTransparencyBinding, in: 0...100, step: 1)
                     Text("\(Int(settings.capsuleTransparencyPercent))%")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
@@ -712,13 +736,13 @@ struct MenuBarWindowView: View {
                     .opacity(0.26)
 
                 HStack(spacing: 12) {
-                    Text("背景颜色")
+                    Text(t("背景颜色", "Background Color"))
                     Spacer()
                     ColorPicker("", selection: capsuleBackgroundColorBinding, supportsOpacity: false)
                         .labelsHidden()
                         .frame(width: 42)
-                        .help("修改悬浮窗玻璃底色")
-                    Button("恢复默认") {
+                        .help(t("修改悬浮窗玻璃底色", "Change the island glass tint"))
+                    Button(t("恢复默认", "Reset")) {
                         settings.capsuleBackgroundColorHex = AppSettings.defaultCapsuleBackgroundColorHex
                     }
                     .buttonStyle(.plain)
@@ -729,13 +753,13 @@ struct MenuBarWindowView: View {
                     .opacity(0.26)
 
                 HStack(spacing: 12) {
-                    Text("文字颜色")
+                    Text(t("文字颜色", "Text Color"))
                     Spacer()
                     ColorPicker("", selection: capsuleTextColorBinding, supportsOpacity: false)
                         .labelsHidden()
                         .frame(width: 42)
-                        .help("修改悬浮岛里的文字和图标颜色")
-                    Button("自动") {
+                        .help(t("修改悬浮岛里的文字和图标颜色", "Change island text and icon color"))
+                    Button(t("自动", "Auto")) {
                         settings.capsuleTextColorHex = AppSettings.automaticCapsuleTextColorHex
                     }
                     .buttonStyle(.plain)
@@ -746,7 +770,7 @@ struct MenuBarWindowView: View {
     }
 
     private var settingsPrioritySection: some View {
-        settingsGroup(title: "优先级颜色", systemImage: "paintpalette") {
+        settingsGroup(title: t("优先级颜色", "Priority Colors"), systemImage: "paintpalette") {
             VStack(spacing: 10) {
                 ForEach(TaskPriority.allCases) { priority in
                     priorityColorRow(priority)
@@ -756,10 +780,10 @@ struct MenuBarWindowView: View {
                     .opacity(0.26)
 
                 HStack {
-                    Text("颜色会同步到悬浮岛和任务列表")
+                    Text(t("颜色会同步到悬浮岛和任务列表", "Colors sync to the island and task list"))
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("恢复默认") {
+                    Button(t("恢复默认", "Reset")) {
                         settings.resetPriorityColors()
                     }
                     .buttonStyle(.plain)
@@ -771,12 +795,12 @@ struct MenuBarWindowView: View {
     }
 
     private var settingsFocusSection: some View {
-        settingsGroup(title: "专注", systemImage: "timer") {
+        settingsGroup(title: t("专注", "Focus"), systemImage: "timer") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    Text("默认时长")
+                    Text(t("默认时长", "Default Duration"))
                     Slider(value: defaultFocusMinutesBinding, in: 5...180, step: 5)
-                    Text("\(settings.defaultFocusMinutesInt) 分钟")
+                    Text(t("\(settings.defaultFocusMinutesInt) 分钟", "\(settings.defaultFocusMinutesInt) min"))
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                         .frame(width: 58, alignment: .trailing)
@@ -784,7 +808,7 @@ struct MenuBarWindowView: View {
 
                 HStack(spacing: 8) {
                     ForEach([15, 25, 45, 60], id: \.self) { minutes in
-                        Button("\(minutes) 分钟") {
+                        Button(t("\(minutes) 分钟", "\(minutes) min")) {
                             settings.defaultFocusMinutes = Double(minutes)
                         }
                         .buttonStyle(CompactGlassButtonStyle())
@@ -792,7 +816,7 @@ struct MenuBarWindowView: View {
                     Spacer()
                 }
 
-                Text("任务没有单独设置时，会使用这个默认时长。单个任务可在任务详情里修改。")
+                Text(t("任务没有单独设置时，会使用这个默认时长。单个任务可在任务详情里修改。", "Tasks use this duration unless they have their own focus length. You can edit it in task details."))
                     .font(.system(size: 11.5, weight: .medium))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -801,12 +825,12 @@ struct MenuBarWindowView: View {
     }
 
     private var settingsShortcutSection: some View {
-        settingsGroup(title: "快捷键", systemImage: "keyboard") {
+        settingsGroup(title: t("快捷键", "Shortcuts"), systemImage: "keyboard") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("快速新增")
+                    Text(t("快速新增", "Quick Add"))
                     Spacer()
-                    Text(settings.quickAddShortcut.displayName)
+                    Text(settings.quickAddShortcut.displayName(settings: settings))
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .monospaced()
                         .foregroundStyle(.secondary)
@@ -818,14 +842,14 @@ struct MenuBarWindowView: View {
 
                     Spacer()
 
-                    Button("恢复默认") {
+                    Button(t("恢复默认", "Reset")) {
                         settings.resetQuickAddShortcut()
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
                 }
 
-                Text(settings.quickAddShortcutStatusMessage ?? "修改后立即生效。单独的 Command 组合容易触发系统菜单，这里只提供更适合全局快捷键的组合。")
+                Text(settings.quickAddShortcutStatusMessage ?? t("修改后立即生效。单独的 Command 组合容易触发系统菜单，这里只提供更适合全局快捷键的组合。", "Changes apply immediately. Command-only shortcuts can conflict with system menus, so this list focuses on safer global combinations."))
                     .font(.system(size: 11.5, weight: .medium))
                     .foregroundStyle(settings.quickAddShortcutStatusMessage == nil ? .secondary : Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
@@ -834,11 +858,11 @@ struct MenuBarWindowView: View {
     }
 
     private var settingsActionsSection: some View {
-        settingsGroup(title: "操作", systemImage: "slider.horizontal.3") {
+        settingsGroup(title: t("操作", "Actions"), systemImage: "slider.horizontal.3") {
             VStack(alignment: .leading, spacing: 10) {
-                Picker("导出格式", selection: $selectedExportFormat) {
+                Picker(t("导出格式", "Export Format"), selection: $selectedExportFormat) {
                     ForEach(TaskExportFormat.allCases) { format in
-                        Text(format.title).tag(format)
+                        Text(format.localizedTitle(settings: settings)).tag(format)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -847,21 +871,21 @@ struct MenuBarWindowView: View {
                     Button {
                         store.reloadTasks()
                     } label: {
-                        Label("刷新", systemImage: "arrow.clockwise")
+                        Label(t("刷新", "Refresh"), systemImage: "arrow.clockwise")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
 
                     Button {
                         exportTasks()
                     } label: {
-                        Label("导出", systemImage: "square.and.arrow.up")
+                        Label(t("导出", "Export"), systemImage: "square.and.arrow.up")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
 
                     Button {
                         importTasks()
                     } label: {
-                        Label("导入", systemImage: "square.and.arrow.down")
+                        Label(t("导入", "Import"), systemImage: "square.and.arrow.down")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
 
@@ -872,7 +896,7 @@ struct MenuBarWindowView: View {
                     Button {
                         Task { await importReminders() }
                     } label: {
-                        Label("导入提醒", systemImage: "bell.badge")
+                        Label(t("导入提醒", "Import Reminders"), systemImage: "bell.badge")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
                     .disabled(isReminderBusy)
@@ -880,7 +904,7 @@ struct MenuBarWindowView: View {
                     Button {
                         Task { await exportReminders() }
                     } label: {
-                        Label("导出提醒", systemImage: "bell.and.waves.left.and.right")
+                        Label(t("导出提醒", "Export Reminders"), systemImage: "bell.and.waves.left.and.right")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
                     .disabled(isReminderBusy)
@@ -892,14 +916,14 @@ struct MenuBarWindowView: View {
                     Button {
                         onDismiss()
                     } label: {
-                        Label("隐藏", systemImage: "minus")
+                        Label(t("隐藏", "Hide"), systemImage: "minus")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
 
                     Button {
                         NSApp.terminate(nil)
                     } label: {
-                        Label("退出", systemImage: "power")
+                        Label(t("退出", "Quit"), systemImage: "power")
                     }
                     .buttonStyle(CompactGlassButtonStyle())
 
@@ -941,7 +965,7 @@ struct MenuBarWindowView: View {
 
     private func exportTasks() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "任务岛导出.\(selectedExportFormat.fileExtension)"
+        panel.nameFieldStringValue = "\(t("任务岛导出", "TaskIsland Export")).\(selectedExportFormat.fileExtension)"
         panel.allowedContentTypes = contentTypes(for: selectedExportFormat)
         panel.canCreateDirectories = true
 
@@ -949,9 +973,9 @@ struct MenuBarWindowView: View {
 
         do {
             try store.exportTasks(to: url, format: selectedExportFormat)
-            importExportMessage = "已导出到 \(url.lastPathComponent)"
+            importExportMessage = t("已导出到 \(url.lastPathComponent)", "Exported to \(url.lastPathComponent)")
         } catch {
-            importExportMessage = "导出失败：\(error.localizedDescription)"
+            importExportMessage = t("导出失败：\(error.localizedDescription)", "Export failed: \(error.localizedDescription)")
         }
     }
 
@@ -965,9 +989,9 @@ struct MenuBarWindowView: View {
 
         do {
             let count = try store.importTasks(from: url)
-            importExportMessage = "已导入 \(count) 个新任务"
+            importExportMessage = t("已导入 \(count) 个新任务", "Imported \(count) new tasks")
         } catch {
-            importExportMessage = "导入失败：\(error.localizedDescription)"
+            importExportMessage = t("导入失败：\(error.localizedDescription)", "Import failed: \(error.localizedDescription)")
         }
     }
 
@@ -976,9 +1000,9 @@ struct MenuBarWindowView: View {
         defer { isReminderBusy = false }
         do {
             let count = try await remindersBridge.importIncompleteReminders(into: store)
-            importExportMessage = "已从提醒事项导入 \(count) 个任务"
+            importExportMessage = t("已从提醒事项导入 \(count) 个任务", "Imported \(count) tasks from Reminders")
         } catch {
-            importExportMessage = "提醒事项导入失败：\(error.localizedDescription)"
+            importExportMessage = t("提醒事项导入失败：\(error.localizedDescription)", "Reminders import failed: \(error.localizedDescription)")
         }
     }
 
@@ -987,9 +1011,9 @@ struct MenuBarWindowView: View {
         defer { isReminderBusy = false }
         do {
             let count = try await remindersBridge.exportIncompleteTasks(from: store)
-            importExportMessage = "已导出 \(count) 个任务到提醒事项"
+            importExportMessage = t("已导出 \(count) 个任务到提醒事项", "Exported \(count) tasks to Reminders")
         } catch {
-            importExportMessage = "提醒事项导出失败：\(error.localizedDescription)"
+            importExportMessage = t("提醒事项导出失败：\(error.localizedDescription)", "Reminders export failed: \(error.localizedDescription)")
         }
     }
 
@@ -1010,7 +1034,7 @@ struct MenuBarWindowView: View {
                 Button {
                     selectedPriority = priority
                 } label: {
-                    Label(priority.title, systemImage: priority.symbolName)
+                    Label(priority.localizedTitle(settings: settings), systemImage: priority.symbolName)
                 }
             }
         } label: {
@@ -1018,7 +1042,7 @@ struct MenuBarWindowView: View {
                 Circle()
                     .fill(selectedPriority.tintColor(settings: settings))
                     .frame(width: 7, height: 7)
-                Text(selectedPriority.shortTitle)
+                Text(selectedPriority.localizedShortTitle(settings: settings))
                     .font(.system(size: 11, weight: .semibold))
             }
             .padding(.horizontal, 8)
@@ -1031,7 +1055,7 @@ struct MenuBarWindowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("选择优先级")
+        .help(t("选择优先级", "Choose priority"))
     }
 
     private var shortcutModifierMenu: some View {
@@ -1046,7 +1070,7 @@ struct MenuBarWindowView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "command")
-                Text(TaskIslandShortcut.modifierDisplayName(rawValue: settings.quickAddShortcutModifiersRawValue))
+                Text(TaskIslandShortcut.modifierDisplayName(rawValue: settings.quickAddShortcutModifiersRawValue, settings: settings))
             }
             .font(.system(size: 12, weight: .semibold))
             .padding(.horizontal, 10)
@@ -1059,7 +1083,7 @@ struct MenuBarWindowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("选择修饰键")
+        .help(t("选择修饰键", "Choose modifier"))
     }
 
     private var shortcutKeyMenu: some View {
@@ -1068,13 +1092,13 @@ struct MenuBarWindowView: View {
                 Button {
                     settings.quickAddShortcutKeyCode = choice.keyCode
                 } label: {
-                    Label(choice.displayName, systemImage: settings.quickAddShortcutKeyCode == choice.keyCode ? "checkmark" : "")
+                    Label(TaskIslandShortcut.keyDisplayName(keyCode: choice.keyCode, settings: settings), systemImage: settings.quickAddShortcutKeyCode == choice.keyCode ? "checkmark" : "")
                 }
             }
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "keyboard")
-                Text(TaskIslandShortcut.keyDisplayName(keyCode: settings.quickAddShortcutKeyCode))
+                Text(TaskIslandShortcut.keyDisplayName(keyCode: settings.quickAddShortcutKeyCode, settings: settings))
             }
             .font(.system(size: 12, weight: .semibold))
             .padding(.horizontal, 10)
@@ -1087,7 +1111,7 @@ struct MenuBarWindowView: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .help("选择按键")
+        .help(t("选择按键", "Choose key"))
     }
 
     private var capsuleYOffsetBinding: Binding<Double> {
@@ -1150,15 +1174,15 @@ struct MenuBarWindowView: View {
     private var headerSubtitle: String {
         let count = store.incompleteCount
         if count == 0 {
-            return "暂无待办"
+            return t("暂无待办", "No tasks")
         }
         if store.todayTasks.count > 0 {
-            return "今天 \(store.todayTasks.count) 个 / 全部 \(count) 个"
+            return t("今天 \(store.todayTasks.count) 个 / 全部 \(count) 个", "Today \(store.todayTasks.count) / All \(count)")
         }
         if count == 1 {
-            return "1 个待办"
+            return t("1 个待办", "1 task")
         }
-        return "\(count) 个待办"
+        return t("\(count) 个待办", "\(count) tasks")
     }
 
     private var taskCountBadge: some View {
@@ -1181,7 +1205,7 @@ struct MenuBarWindowView: View {
             Circle()
                 .fill(tint)
                 .frame(width: 8, height: 8)
-            Text(priority.shortTitle)
+            Text(priority.localizedShortTitle(settings: settings))
                 .font(.system(size: 11, weight: .semibold))
             Text("\(count)")
                 .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -1203,7 +1227,7 @@ struct MenuBarWindowView: View {
                 .frame(width: 10, height: 10)
                 .shadow(color: priority.tintColor(settings: settings).opacity(0.45), radius: 4)
 
-            Text(priority.title)
+            Text(priority.localizedTitle(settings: settings))
                 .font(.system(size: 13, weight: .medium))
 
             Spacer()
@@ -1211,7 +1235,7 @@ struct MenuBarWindowView: View {
             ColorPicker("", selection: priorityColorBinding(priority), supportsOpacity: false)
                 .labelsHidden()
                 .frame(width: 42)
-                .help("修改\(priority.title)颜色")
+                .help(t("修改\(priority.title)颜色", "Change \(priority.localizedTitle(settings: settings)) color"))
         }
         .padding(.vertical, 2)
     }
@@ -1236,7 +1260,7 @@ struct MenuBarWindowView: View {
                 .font(.system(size: 28, weight: .semibold))
                 .foregroundStyle(.green)
 
-            Text("暂无待办")
+            Text(t("暂无待办", "No tasks"))
                 .font(.system(size: 14, weight: .semibold))
 
             Text(emptyTasksSubtitle)
@@ -1250,15 +1274,15 @@ struct MenuBarWindowView: View {
 
     private var emptyTasksSubtitle: String {
         if taskViewMode == .today, !store.incompleteTasks.isEmpty {
-            return "今天队列为空，可以到全部里点“加入今天”。"
+            return t("今天队列为空，可以到全部里点“加入今天”。", "Today is empty. Add tasks from All when needed.")
         }
         if taskViewMode == .tags {
-            return "输入任务时加 #标签，就会出现在这里。"
+            return t("输入任务时加 #标签，就会出现在这里。", "Add #tags while typing to show tasks here.")
         }
         if taskViewMode == .projects {
-            return "输入任务时加 +项目，就会出现在这里。"
+            return t("输入任务时加 +项目，就会出现在这里。", "Add +projects while typing to show tasks here.")
         }
-        return "现在很安静。"
+        return t("现在很安静。", "Quiet for now.")
     }
 
     private func filtered(_ tasks: [TaskItem]) -> [TaskItem] {
@@ -1274,17 +1298,17 @@ struct MenuBarWindowView: View {
     }
 
     private func focusSummarySubtitle(task: TaskItem?, now: Date) -> String {
-        guard let task else { return "添加一个任务后就可以开始专注。" }
+        guard let task else { return t("添加一个任务后就可以开始专注。", "Add a task to start focusing.") }
 
         if task.focusStartedAt == nil {
             let accumulated = store.focusSeconds(for: task, now: now)
             if accumulated > 0 {
-                return "已专注 \(formattedDuration(accumulated))，可继续这一轮。"
+                return t("已专注 \(formattedDuration(accumulated))，可继续这一轮。", "Focused \(formattedDuration(accumulated)); continue this round.")
             }
-            return "用于顶部快捷专注，一键开始 \(focusTargetMinutes(for: task)) 分钟。"
+            return t("用于顶部快捷专注，一键开始 \(focusTargetMinutes(for: task)) 分钟。", "Quick focus from the top. Start \(focusTargetMinutes(for: task)) min.")
         }
 
-        return "专注中，剩余 \(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt)))。"
+        return t("专注中，剩余 \(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt)))。", "Focusing, \(formattedDuration(store.focusRemainingSeconds(for: task, now: now, defaultMinutes: settings.defaultFocusMinutesInt))) left.")
     }
 
     private func focusTargetMinutes(for task: TaskItem) -> Int {
@@ -1331,7 +1355,7 @@ struct MenuBarWindowView: View {
         let minutes = totalSeconds / 60
         let remainingSeconds = totalSeconds % 60
         if minutes >= 60 {
-            return "\(minutes / 60)时\(minutes % 60)分"
+            return t("\(minutes / 60)时\(minutes % 60)分", "\(minutes / 60)h \(minutes % 60)m")
         }
         return "\(minutes):\(String(format: "%02d", remainingSeconds))"
     }
@@ -1569,6 +1593,32 @@ enum TaskViewMode: String, CaseIterable, Identifiable {
         }
     }
 
+    @MainActor
+    func localizedTitle(settings: AppSettings) -> String {
+        switch self {
+        case .today:
+            return settings.localized("今天", "Today")
+        case .suggested:
+            return settings.localized("建议", "Suggested")
+        case .high:
+            return settings.localized("高优", "High")
+        case .upcoming:
+            return settings.localized("即将", "Upcoming")
+        case .noDate:
+            return settings.localized("无日期", "No Date")
+        case .tags:
+            return settings.localized("标签", "Tags")
+        case .projects:
+            return settings.localized("项目", "Projects")
+        case .all:
+            return settings.localized("全部", "All")
+        case .completed:
+            return settings.localized("完成", "Done")
+        case .review:
+            return settings.localized("回顾", "Review")
+        }
+    }
+
     var systemImage: String {
         switch self {
         case .today:
@@ -1606,6 +1656,7 @@ enum TaskPanelSettingsAnchor: Hashable {
 
 private struct CompletedTaskRow: View {
     @EnvironmentObject private var store: TaskStore
+    @EnvironmentObject private var settings: AppSettings
     let task: TaskItem
 
     var body: some View {
@@ -1636,7 +1687,7 @@ private struct CompletedTaskRow: View {
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(GlassIconButtonStyle())
-            .help("删除任务")
+            .help(settings.localized("删除任务", "Delete task"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -1649,8 +1700,12 @@ private struct CompletedTaskRow: View {
 
     private func completedText(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = Calendar.current.isDateInToday(date) ? "今天 HH:mm" : "M月d日 HH:mm"
+        formatter.locale = settings.locale
+        if settings.isEnglish {
+            formatter.dateFormat = Calendar.current.isDateInToday(date) ? "'Today' HH:mm" : "MMM d HH:mm"
+        } else {
+            formatter.dateFormat = Calendar.current.isDateInToday(date) ? "今天 HH:mm" : "M月d日 HH:mm"
+        }
         return formatter.string(from: date)
     }
 }
