@@ -191,10 +191,10 @@ Scripts/prepare-appstore-upload-kit.sh
 
 ## App Store Connect 链接
 
-- 隐私政策 URL：https://howardrock88.github.io/TaskIsland/privacy.html
-- 技术支持 URL：https://howardrock88.github.io/TaskIsland/support.html
-- 英文隐私政策 URL：https://howardrock88.github.io/TaskIsland/en/privacy.html
-- 英文技术支持 URL：https://howardrock88.github.io/TaskIsland/en/support.html
+- 首发英文隐私政策 URL：https://howardrock88.github.io/TaskIsland/en/privacy.html
+- 首发英文技术支持 URL：https://howardrock88.github.io/TaskIsland/en/support.html
+- 简体中文隐私政策 URL：https://howardrock88.github.io/TaskIsland/privacy.html
+- 简体中文技术支持 URL：https://howardrock88.github.io/TaskIsland/support.html
 
 ## 上传顺序
 

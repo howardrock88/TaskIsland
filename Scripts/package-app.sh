@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
 APP_VERSION="${TASKISLAND_APP_VERSION:-$VERSION}"
 APP_BUILD="${TASKISLAND_APP_BUILD:-$APP_VERSION}"
-APP_DISPLAY_NAME="任务岛"
+APP_DISPLAY_NAME="${TASKISLAND_APP_DISPLAY_NAME:-任务岛}"
 APP_DIR="$ROOT_DIR/.build/package/$APP_DISPLAY_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -14,6 +14,11 @@ ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.png"
 ICONSET_DIR="$ROOT_DIR/.build/package/AppIcon.iconset"
 MIN_MACOS="${TASKISLAND_MIN_MACOS:-15.0}"
 BUNDLE_ID="${TASKISLAND_BUNDLE_ID:-local.taskisland.app}"
+DEVELOPMENT_REGION="${TASKISLAND_DEVELOPMENT_REGION:-zh_CN}"
+DEFAULT_LANGUAGE="${TASKISLAND_DEFAULT_LANGUAGE:-zh-Hans}"
+URL_NAME="${TASKISLAND_URL_NAME:-任务岛快捷指令}"
+REMINDERS_USAGE_DESCRIPTION="${TASKISLAND_REMINDERS_USAGE_DESCRIPTION:-任务岛需要访问提醒事项，用于把本地任务导入或导出到系统提醒事项。}"
+REMINDERS_FULL_ACCESS_USAGE_DESCRIPTION="${TASKISLAND_REMINDERS_FULL_ACCESS_USAGE_DESCRIPTION:-任务岛需要完整提醒事项访问权限，用于读取未完成提醒事项并把任务导出为系统提醒。}"
 
 cd "$ROOT_DIR"
 read -r -a BUILD_ARCHS <<< "${TASKISLAND_ARCHS:-$(uname -m)}"
@@ -63,7 +68,14 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key>
-    <string>zh_CN</string>
+    <string>$DEVELOPMENT_REGION</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>zh-Hans</string>
+        <string>en</string>
+    </array>
+    <key>TaskIslandDefaultLanguage</key>
+    <string>$DEFAULT_LANGUAGE</string>
     <key>CFBundleExecutable</key>
     <string>TaskIsland</string>
     <key>CFBundleIdentifier</key>
@@ -73,9 +85,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleName</key>
-    <string>任务岛</string>
+    <string>$APP_DISPLAY_NAME</string>
     <key>CFBundleDisplayName</key>
-    <string>任务岛</string>
+    <string>$APP_DISPLAY_NAME</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
@@ -88,7 +100,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>任务岛快捷指令</string>
+            <string>$URL_NAME</string>
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>taskisland</string>
@@ -102,9 +114,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSRemindersUsageDescription</key>
-    <string>任务岛需要访问提醒事项，用于把本地任务导入或导出到系统提醒事项。</string>
+    <string>$REMINDERS_USAGE_DESCRIPTION</string>
     <key>NSRemindersFullAccessUsageDescription</key>
-    <string>任务岛需要完整提醒事项访问权限，用于读取未完成提醒事项并把任务导出为系统提醒。</string>
+    <string>$REMINDERS_FULL_ACCESS_USAGE_DESCRIPTION</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 </dict>

@@ -7,7 +7,21 @@ Apple 当前规则：每个语言/显示尺寸至少 1 张截图、最多 10 张
 
 素材目录里可以保留备用图，但 App Store Connect 页面按本清单上传，避免超过数量上限。
 
-## 简体中文
+## English (U.S.) 首发必传
+
+### App Preview（1 条）
+
+- `dist/appstore/assets/videos/en/taskisland-app-preview-en-1920x1080.mp4`
+
+### Screenshots（5 张）
+
+1. `dist/appstore/assets/screenshots/en-promo/01-islands-4k-2880x1800.jpg`
+2. `dist/appstore/assets/screenshots/en-promo/02-quick-add-4k-2880x1800.jpg`
+3. `dist/appstore/assets/screenshots/en-promo/03-task-panel-4k-2880x1800.jpg`
+4. `dist/appstore/assets/screenshots/en-promo/04-settings-4k-2880x1800.jpg`
+5. `dist/appstore/assets/screenshots/en-promo/05-brand-slogan-4k-2880x1800.jpg`
+
+## 简体中文备用
 
 ### App Preview（1 条）
 
@@ -31,20 +45,6 @@ Apple 当前规则：每个语言/显示尺寸至少 1 张截图、最多 10 张
 - `zh-Hans/06-settings-display-capsule-1440x900.jpg`
 - `zh-Hans/07-settings-focus-priority-1440x900.jpg`
 - `zh-Hans/08-settings-shortcuts-data-1440x900.jpg`
-
-## English (U.S.)
-
-### App Preview（1 条）
-
-- `dist/appstore/assets/videos/en/taskisland-app-preview-en-1920x1080.mp4`
-
-### Screenshots（5 张）
-
-1. `dist/appstore/assets/screenshots/en-promo/01-islands-4k-2880x1800.jpg`
-2. `dist/appstore/assets/screenshots/en-promo/02-quick-add-4k-2880x1800.jpg`
-3. `dist/appstore/assets/screenshots/en-promo/03-task-panel-4k-2880x1800.jpg`
-4. `dist/appstore/assets/screenshots/en-promo/04-settings-4k-2880x1800.jpg`
-5. `dist/appstore/assets/screenshots/en-promo/05-brand-slogan-4k-2880x1800.jpg`
 
 ## 图标
 

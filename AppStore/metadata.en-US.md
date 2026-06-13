@@ -9,8 +9,8 @@ This submission uses version `0.1.7`, including recent bug fixes and Chinese/Eng
 - App name: TaskIsland
 - Subtitle: Keep important tasks in sight
 - SKU: `taskisland-mac-001`
-- Primary app record language: Simplified Chinese
-- Suggested localization: English (U.S.)
+- Primary app record language: English (U.S.)
+- Optional localization for later: Simplified Chinese, after China mainland filing is ready
 - Category: Productivity
 - Availability: Countries and regions outside China mainland first; China mainland after ICP/App filing is approved
 - Price: Paid one-time purchase, tier TBD

@@ -48,7 +48,7 @@ REQUIRED_METADATA_FILES=(
     "$ROOT_DIR/AppStore/transporter-upload-guide.zh-Hans.md"
     "$ROOT_DIR/AppStore/user-only-next-actions.zh-Hans.md"
 )
-APP_NAME="任务岛"
+APP_NAME="${TASKISLAND_APPSTORE_BUNDLE_DISPLAY_NAME:-${TASKISLAND_APPSTORE_APP_NAME:-TaskIsland}}"
 APP_DIR="$ROOT_DIR/.build/package/$APP_NAME.app"
 GITHUB_DIST_DIR="$ROOT_DIR/dist/github"
 APPSTORE_DIST_DIR="$ROOT_DIR/dist/appstore"
@@ -121,6 +121,9 @@ APPSTORE_VERSION="${TASKISLAND_APPSTORE_VERSION:-$VERSION}"
 APPSTORE_BUILD="${TASKISLAND_APPSTORE_BUILD:-1}"
 MIN_MACOS="${TASKISLAND_MIN_MACOS:-15.0}"
 APPSTORE_ARCHS="${TASKISLAND_APPSTORE_ARCHS:-${TASKISLAND_ARCHS:-arm64 x86_64}}"
+APPSTORE_PRIMARY_LOCALE="${TASKISLAND_APPSTORE_PRIMARY_LOCALE:-en-US}"
+APPSTORE_DEVELOPMENT_REGION="${TASKISLAND_APPSTORE_DEVELOPMENT_REGION:-en}"
+APPSTORE_DEFAULT_LANGUAGE="${TASKISLAND_APPSTORE_DEFAULT_LANGUAGE:-en}"
 if [[ "$APPSTORE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     ok "App Store 版本号格式正确：$APPSTORE_VERSION"
 else
@@ -131,6 +134,18 @@ if [[ "$APPSTORE_BUILD" =~ ^[0-9]+([.][0-9]+){0,2}$ ]]; then
     ok "App Store 构建号格式正确：$APPSTORE_BUILD"
 else
     fail "App Store 构建号格式不适合提交：$APPSTORE_BUILD"
+fi
+
+if [[ "$APPSTORE_PRIMARY_LOCALE" == "en-US" ]]; then
+    ok "App Store Connect 主语言配置为 English (U.S.)"
+else
+    warn "App Store Connect 主语言当前不是 English (U.S.)：$APPSTORE_PRIMARY_LOCALE"
+fi
+
+if [[ "$APPSTORE_DEFAULT_LANGUAGE" == "en" ]]; then
+    ok "App Store 安装包默认界面语言配置为英文"
+else
+    warn "App Store 安装包默认界面语言当前不是英文：$APPSTORE_DEFAULT_LANGUAGE"
 fi
 
 for script in "$APP_SCRIPT" "$APPSTORE_SCRIPT" "$APPSTORE_ASSETS_SCRIPT" "$APPSTORE_PROMO_ASSETS_SCRIPT" "$APPSTORE_UPLOAD_KIT_SCRIPT" "$APPSTORE_FINALIZE_SCRIPT" "$APPSTORE_VERIFY_SCRIPT" "$SENSITIVE_FILES_SCRIPT" "$METADATA_LIMITS_SCRIPT" "$GITHUB_PUBLISH_SCOPE_SCRIPT"; do
@@ -409,7 +424,7 @@ if [[ "${1:-}" == "--build-app" ]]; then
     if [[ -z "$BUNDLE_ID" || "$BUNDLE_ID" == "local.taskisland.app" ]]; then
         fail "--build-app 需要先设置正式 TASKISLAND_BUNDLE_ID"
     else
-        if TASKISLAND_BUNDLE_ID="$BUNDLE_ID" TASKISLAND_APP_VERSION="$APPSTORE_VERSION" TASKISLAND_APP_BUILD="$APPSTORE_BUILD" TASKISLAND_MIN_MACOS="$MIN_MACOS" TASKISLAND_ARCHS="$APPSTORE_ARCHS" TASKISLAND_SKIP_SIGN=1 "$APP_SCRIPT" >/dev/null; then
+        if TASKISLAND_BUNDLE_ID="$BUNDLE_ID" TASKISLAND_APP_VERSION="$APPSTORE_VERSION" TASKISLAND_APP_BUILD="$APPSTORE_BUILD" TASKISLAND_MIN_MACOS="$MIN_MACOS" TASKISLAND_ARCHS="$APPSTORE_ARCHS" TASKISLAND_APP_DISPLAY_NAME="$APP_NAME" TASKISLAND_DEVELOPMENT_REGION="$APPSTORE_DEVELOPMENT_REGION" TASKISLAND_DEFAULT_LANGUAGE="$APPSTORE_DEFAULT_LANGUAGE" TASKISLAND_SKIP_SIGN=1 "$APP_SCRIPT" >/dev/null; then
             INFO_PLIST="$APP_DIR/Contents/Info.plist"
             BUILT_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_DIR/Contents/Info.plist" 2>/dev/null || true)"
             BUILT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_DIR/Contents/Info.plist" 2>/dev/null || true)"
@@ -423,6 +438,24 @@ if [[ "${1:-}" == "--build-app" ]]; then
                 ok "测试 .app 已写入 App Store 版本号和构建号"
             else
                 fail "测试 .app 版本信息不匹配：$BUILT_VERSION ($BUILT_BUILD)"
+            fi
+
+            if [[ "$(plist_print "$INFO_PLIST" "CFBundleDisplayName")" == "$APP_NAME" ]]; then
+                ok "测试 .app 已写入 App Store 显示名称：$APP_NAME"
+            else
+                fail "测试 .app 显示名称不匹配"
+            fi
+
+            if [[ "$(plist_print "$INFO_PLIST" "CFBundleDevelopmentRegion")" == "$APPSTORE_DEVELOPMENT_REGION" ]]; then
+                ok "测试 .app 已写入开发语言区域：$APPSTORE_DEVELOPMENT_REGION"
+            else
+                fail "测试 .app 开发语言区域不匹配"
+            fi
+
+            if [[ "$(plist_print "$INFO_PLIST" "TaskIslandDefaultLanguage")" == "$APPSTORE_DEFAULT_LANGUAGE" ]]; then
+                ok "测试 .app 已写入默认界面语言：$APPSTORE_DEFAULT_LANGUAGE"
+            else
+                fail "测试 .app 默认界面语言不匹配"
             fi
 
             BUILT_MIN_MACOS="$(plist_print "$INFO_PLIST" "LSMinimumSystemVersion")"

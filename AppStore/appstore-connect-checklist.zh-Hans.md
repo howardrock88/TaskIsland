@@ -1,12 +1,12 @@
 # App Store Connect 填写清单
 
-当前策略：先上架中国大陆以外国家/地区；中国大陆等 ICP/App 备案完成后再开放。
+当前策略：首发用英文商品页上架中国大陆以外国家/地区；中国大陆等 ICP/App 备案完成后再添加或开放简体中文本地化。
 
 ## App 记录
 
 - 平台：macOS
-- 名称：任务岛
-- 主语言：简体中文
+- 名称：TaskIsland
+- 主语言：English (U.S.)
 - Bundle ID：`com.yuxiao.TaskIsland`
 - SKU：`taskisland-mac-001`
 - 版本号：`0.1.7`
@@ -15,11 +15,11 @@
 
 ## 商品页
 
-- 副标题：让重要的事，始终在眼前
+- 副标题：Keep important tasks in sight
 - 分类：效率
-- 关键词：任务管理,待办,专注,提醒,效率,悬浮窗,时间管理,本地任务
-- 隐私政策 URL：`https://howardrock88.github.io/TaskIsland/privacy.html`
-- 技术支持 URL：`https://howardrock88.github.io/TaskIsland/support.html`
+- 关键词：task,manager,todo,focus,timer,reminder,productivity,menubar,local,tasks
+- 隐私政策 URL：`https://howardrock88.github.io/TaskIsland/en/privacy.html`
+- 技术支持 URL：`https://howardrock88.github.io/TaskIsland/en/support.html`
 
 完整描述、本版本更新和审核备注见：
 
@@ -41,15 +41,16 @@
 - `AppStore/finalize-after-profile.zh-Hans.md`
 - `AppStore/transporter-upload-guide.zh-Hans.md`
 
-## 英文地区本地化
+## 简体中文本地化
 
-- App 名称：TaskIsland
-- 副标题：Keep important tasks in sight
-- Support URL：`https://howardrock88.github.io/TaskIsland/en/support.html`
-- Privacy Policy URL：`https://howardrock88.github.io/TaskIsland/en/privacy.html`
-- 英文商品页草稿：`AppStore/metadata.en-US.md`
-- 英文隐私说明：`AppStore/privacy.en-US.md`
-- 英文审核备注：`AppStore/review-notes.en-US.md`
+- App 名称：任务岛
+- 副标题：让重要的事，始终在眼前
+- Support URL：`https://howardrock88.github.io/TaskIsland/support.html`
+- Privacy Policy URL：`https://howardrock88.github.io/TaskIsland/privacy.html`
+- 中文商品页草稿：`AppStore/metadata.zh-Hans.md`
+- 中文隐私说明：`AppStore/privacy.zh-Hans.md`
+- 中文审核备注：`AppStore/review-notes.zh-Hans.md`
+- 当前建议：先不作为首发必填；备案完成、准备开放中国大陆后再启用
 
 ## 价格与销售范围
 

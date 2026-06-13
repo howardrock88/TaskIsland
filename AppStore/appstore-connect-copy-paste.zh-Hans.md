@@ -6,8 +6,8 @@
 
 ```text
 平台：macOS
-名称：任务岛
-主语言：简体中文
+名称：TaskIsland
+主语言：English (U.S.)
 Bundle ID：com.yuxiao.TaskIsland
 SKU：taskisland-mac-001
 用户访问权限：Full Access
@@ -24,51 +24,7 @@ SKU：taskisland-mac-001
 价格：一次性付费，档位待定
 ```
 
-## 简体中文商品页
-
-App 名称：
-
-```text
-任务岛
-```
-
-副标题：
-
-```text
-让重要的事，始终在眼前
-```
-
-关键词：
-
-```text
-任务管理,待办,专注,提醒,效率,悬浮窗,时间管理,本地任务
-```
-
-推广文本：
-
-```text
-任务岛把待办、提醒和专注计时放在桌面顶部，用轻量悬浮岛帮助你持续看见当前最重要的事。
-```
-
-本版本更新：
-
-```text
-新增中英文界面切换：可在设置中选择中文或 English，悬浮岛、任务面板、任务详情、快速新增、菜单栏和提醒通知会即时跟随；任务内容本身不会被翻译，避免影响用户已有数据。此版本也保留专注完成提醒增强：专注计时结束后，专注岛会保留在桌面上，显示扫光、边框脉冲和声音提醒，直到用户点击“完成”确认。
-```
-
-支持 URL：
-
-```text
-https://howardrock88.github.io/TaskIsland/support.html
-```
-
-隐私政策 URL：
-
-```text
-https://howardrock88.github.io/TaskIsland/privacy.html
-```
-
-## English (U.S.) Localization
+## 英文商品页（首发主语言）
 
 App Name:
 
@@ -112,6 +68,50 @@ Privacy Policy URL:
 
 ```text
 https://howardrock88.github.io/TaskIsland/en/privacy.html
+```
+
+## 简体中文本地化（备案完成后再开放中国大陆）
+
+App 名称：
+
+```text
+任务岛
+```
+
+副标题：
+
+```text
+让重要的事，始终在眼前
+```
+
+关键词：
+
+```text
+任务管理,待办,专注,提醒,效率,悬浮窗,时间管理,本地任务
+```
+
+推广文本：
+
+```text
+任务岛把待办、提醒和专注计时放在桌面顶部，用轻量悬浮岛帮助你持续看见当前最重要的事。
+```
+
+本版本更新：
+
+```text
+新增中英文界面切换：可在设置中选择中文或 English，悬浮岛、任务面板、任务详情、快速新增、菜单栏和提醒通知会即时跟随；任务内容本身不会被翻译，避免影响用户已有数据。此版本也保留专注完成提醒增强：专注计时结束后，专注岛会保留在桌面上，显示扫光、边框脉冲和声音提醒，直到用户点击“完成”确认。
+```
+
+支持 URL：
+
+```text
+https://howardrock88.github.io/TaskIsland/support.html
+```
+
+隐私政策 URL：
+
+```text
+https://howardrock88.github.io/TaskIsland/privacy.html
 ```
 
 ## App Privacy

@@ -17,9 +17,12 @@ APPSTORE_BUILD="${TASKISLAND_APPSTORE_BUILD:-1}"
 BUNDLE_ID="${TASKISLAND_BUNDLE_ID:-}"
 MIN_MACOS="${TASKISLAND_MIN_MACOS:-15.0}"
 APPSTORE_ARCHS="${TASKISLAND_APPSTORE_ARCHS:-${TASKISLAND_ARCHS:-arm64 x86_64}}"
+APP_NAME="${TASKISLAND_APPSTORE_BUNDLE_DISPLAY_NAME:-${TASKISLAND_APPSTORE_APP_NAME:-TaskIsland}}"
+APPSTORE_DEVELOPMENT_REGION="${TASKISLAND_APPSTORE_DEVELOPMENT_REGION:-en}"
+APPSTORE_DEFAULT_LANGUAGE="${TASKISLAND_APPSTORE_DEFAULT_LANGUAGE:-en}"
 APP_SIGN_IDENTITY="${TASKISLAND_APPSTORE_APP_SIGN_IDENTITY:-${TASKISLAND_APP_SIGN_IDENTITY:-}}"
 INSTALLER_SIGN_IDENTITY="${TASKISLAND_APPSTORE_INSTALLER_SIGN_IDENTITY:-${TASKISLAND_INSTALLER_SIGN_IDENTITY:-}}"
-APP_DIR="${TASKISLAND_APPSTORE_APP_DIR:-$ROOT_DIR/.build/package/任务岛.app}"
+APP_DIR="${TASKISLAND_APPSTORE_APP_DIR:-$ROOT_DIR/.build/package/$APP_NAME.app}"
 PKG_PATH="${TASKISLAND_APPSTORE_PKG_PATH:-$ROOT_DIR/dist/appstore/TaskIsland-AppStore-$APPSTORE_VERSION-b$APPSTORE_BUILD.pkg}"
 INFO_PLIST="$APP_DIR/Contents/Info.plist"
 EMBEDDED_PROFILE="$APP_DIR/Contents/embedded.provisionprofile"
@@ -99,6 +102,9 @@ require_plist_value() {
 require_plist_value "$INFO_PLIST" "CFBundleIdentifier" "$BUNDLE_ID" "Bundle ID"
 require_plist_value "$INFO_PLIST" "CFBundleShortVersionString" "$APPSTORE_VERSION" "版本号"
 require_plist_value "$INFO_PLIST" "CFBundleVersion" "$APPSTORE_BUILD" "构建号"
+require_plist_value "$INFO_PLIST" "CFBundleDisplayName" "$APP_NAME" "App 显示名称"
+require_plist_value "$INFO_PLIST" "CFBundleDevelopmentRegion" "$APPSTORE_DEVELOPMENT_REGION" "开发语言区域"
+require_plist_value "$INFO_PLIST" "TaskIslandDefaultLanguage" "$APPSTORE_DEFAULT_LANGUAGE" "默认界面语言"
 require_plist_value "$INFO_PLIST" "LSMinimumSystemVersion" "$MIN_MACOS" "最低 macOS 版本"
 require_plist_value "$INFO_PLIST" "LSApplicationCategoryType" "public.app-category.productivity" "App 分类"
 require_plist_value "$INFO_PLIST" "CFBundleURLTypes:0:CFBundleURLSchemes:0" "taskisland" "URL Scheme"
@@ -169,10 +175,10 @@ if [[ -n "$INSTALLER_SIGN_IDENTITY" ]]; then
 fi
 
 if pkgutil --payload-files "$PKG_PATH" >/dev/null 2>&1; then
-    if pkgutil --payload-files "$PKG_PATH" | grep -F "任务岛.app/Contents/MacOS/TaskIsland" >/dev/null; then
-        ok ".pkg payload 包含任务岛.app"
+    if pkgutil --payload-files "$PKG_PATH" | grep -F "$APP_NAME.app/Contents/MacOS/TaskIsland" >/dev/null; then
+        ok ".pkg payload 包含 $APP_NAME.app"
     else
-        fail ".pkg payload 未找到任务岛.app"
+        fail ".pkg payload 未找到 $APP_NAME.app"
     fi
 else
     ok "当前系统无法展开检查 payload，已跳过 payload 明细检查"

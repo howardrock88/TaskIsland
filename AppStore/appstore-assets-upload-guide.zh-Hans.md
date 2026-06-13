@@ -47,7 +47,25 @@ AppStore/appstore-upload-selection.zh-Hans.md
 
 如果 App Store Connect 允许你上传 App Preview 视频，建议每个语言先上传视频，再上传截图。每个语言/显示尺寸截图最多 10 张，App Preview 最多 3 条。
 
-### 简体中文
+首发策略是英文商品页优先，所以先上传 `English (U.S.)` 这一组。简体中文素材保留，等中国大陆备案和中文本地化准备好后再上传或启用。
+
+### English (U.S.) 首发必传
+
+App Preview：
+
+```text
+dist/appstore/assets/videos/en/taskisland-app-preview-en-1920x1080.mp4
+```
+
+截图上传顺序：
+
+1. `dist/appstore/assets/screenshots/en-promo/01-islands-4k-2880x1800.jpg`
+2. `dist/appstore/assets/screenshots/en-promo/02-quick-add-4k-2880x1800.jpg`
+3. `dist/appstore/assets/screenshots/en-promo/03-task-panel-4k-2880x1800.jpg`
+4. `dist/appstore/assets/screenshots/en-promo/04-settings-4k-2880x1800.jpg`
+5. `dist/appstore/assets/screenshots/en-promo/05-brand-slogan-4k-2880x1800.jpg`
+
+### 简体中文备用
 
 App Preview：
 
@@ -88,22 +106,6 @@ dist/appstore/assets/videos/zh-Hans/taskisland-app-preview-zh-Hans-1920x1080.mp4
   - 展示专注和优先级颜色设置。
 - `dist/appstore/assets/screenshots/zh-Hans/08-settings-shortcuts-data-1440x900.jpg`
   - 展示快捷操作、导入导出和提醒事项集成。
-
-### English (U.S.)
-
-App Preview：
-
-```text
-dist/appstore/assets/videos/en/taskisland-app-preview-en-1920x1080.mp4
-```
-
-截图上传顺序：
-
-1. `dist/appstore/assets/screenshots/en-promo/01-islands-4k-2880x1800.jpg`
-2. `dist/appstore/assets/screenshots/en-promo/02-quick-add-4k-2880x1800.jpg`
-3. `dist/appstore/assets/screenshots/en-promo/03-task-panel-4k-2880x1800.jpg`
-4. `dist/appstore/assets/screenshots/en-promo/04-settings-4k-2880x1800.jpg`
-5. `dist/appstore/assets/screenshots/en-promo/05-brand-slogan-4k-2880x1800.jpg`
 
 ## 图标
 

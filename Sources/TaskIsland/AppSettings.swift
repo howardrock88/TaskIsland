@@ -98,7 +98,7 @@ final class AppSettings: ObservableObject {
         showTitleInMenuBar = defaults.object(forKey: Keys.showTitleInMenuBar) as? Bool ?? true
         darkGlassMode = defaults.object(forKey: Keys.darkGlassMode) as? Bool ?? false
         let savedLanguage = defaults.object(forKey: Keys.appLanguage) as? String
-        appLanguage = AppLanguage(rawValue: savedLanguage ?? "") ?? .chinese
+        appLanguage = AppLanguage(rawValue: savedLanguage ?? "") ?? Self.bundledDefaultLanguage()
         defaultFocusMinutes = Self.clampedFocusMinutes(
             defaults.object(forKey: Keys.defaultFocusMinutes) as? Double ?? Self.standardFocusMinutes
         )
@@ -172,6 +172,21 @@ final class AppSettings: ObservableObject {
     static let defaultCapsuleBackgroundColorHex = "#DDF7FF"
     static let automaticCapsuleTextColorHex = ""
     static let standardFocusMinutes = 25.0
+
+    private static func bundledDefaultLanguage(bundle: Bundle = .main) -> AppLanguage {
+        guard let rawValue = bundle.object(forInfoDictionaryKey: "TaskIslandDefaultLanguage") as? String else {
+            return .chinese
+        }
+
+        switch rawValue.lowercased() {
+        case "en", "en-us":
+            return .english
+        case "zh-hans", "zh_cn", "zh-cn":
+            return .chinese
+        default:
+            return .chinese
+        }
+    }
 
     var isEnglish: Bool {
         appLanguage == .english

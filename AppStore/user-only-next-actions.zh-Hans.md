@@ -64,8 +64,8 @@ https://appstoreconnect.apple.com/apps
 
 ```text
 Platform: macOS
-Name: 任务岛
-Primary Language: Simplified Chinese
+Name: TaskIsland
+Primary Language: English (U.S.)
 Bundle ID: com.yuxiao.TaskIsland
 SKU: taskisland-mac-001
 User Access: Full Access

@@ -159,19 +159,19 @@ TASKISLAND_APPSTORE_PROVISIONING_PROFILE="/Users/you/Downloads/TaskIsland_AppSto
 脚本会把它复制到：
 
 ```text
-任务岛.app/Contents/embedded.provisionprofile
+TaskIsland.app/Contents/embedded.provisionprofile
 ```
 
 ### 6. App Store Connect App 信息
 
 需要你决定或准备：
 
-- App 名称：任务岛
+- App 名称：TaskIsland
 - SKU：例如 `taskisland-mac-001`
-- 主语言：简体中文
+- 主语言：English (U.S.)
 - 上架地区：先选择中国大陆以外国家/地区；中国大陆等 ICP/App 备案完成后再开放
-- 隐私政策 URL
-- 技术支持 URL
+- 隐私政策 URL：`https://howardrock88.github.io/TaskIsland/en/privacy.html`
+- 技术支持 URL：`https://howardrock88.github.io/TaskIsland/en/support.html`
 - App 分类：效率
 - 价格：一次性付费档位
 - App Store 版本号：例如 `0.1.7`

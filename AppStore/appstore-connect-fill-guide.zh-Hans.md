@@ -1,6 +1,6 @@
 # App Store Connect 填写操作指南
 
-这份文件用于你打开 App Store Connect 时逐项照填。当前策略是先提交中国大陆以外国家/地区，中国大陆等 ICP/App 备案通过后再开放。
+这份文件用于你打开 App Store Connect 时逐项照填。当前策略是第一版先用英文商品页提交中国大陆以外国家/地区，中国大陆等 ICP/App 备案通过后再添加或开放简体中文本地化。
 
 ## 入口
 
@@ -20,8 +20,8 @@ https://appstoreconnect.apple.com/apps
 
 ```text
 Platform: macOS
-Name: 任务岛
-Primary Language: Simplified Chinese
+Name: TaskIsland
+Primary Language: English (U.S.)
 Bundle ID: com.yuxiao.TaskIsland
 SKU: taskisland-mac-001
 User Access: Full Access
@@ -87,36 +87,12 @@ Distribution Method: Public
 AppStore/agreements-tax-banking-guide.zh-Hans.md
 ```
 
-## 中文商品页
+## 英文商品页（首发主语言）
 
 路径：
 
 ```text
 左侧 macOS App -> 当前版本
-```
-
-从这些文件复制：
-
-```text
-AppStore/metadata.zh-Hans.md
-AppStore/review-notes.zh-Hans.md
-```
-
-关键字段：
-
-```text
-Subtitle: 让重要的事，始终在眼前
-Keywords: 任务管理,待办,专注,提醒,效率,悬浮窗,时间管理,本地任务
-Support URL: https://howardrock88.github.io/TaskIsland/support.html
-Privacy Policy URL: https://howardrock88.github.io/TaskIsland/privacy.html
-```
-
-## 英文本地化
-
-路径通常在版本页面或 App 信息页面的语言菜单里：
-
-```text
-Add Localization -> English (U.S.)
 ```
 
 从这些文件复制：
@@ -135,6 +111,33 @@ Keywords: task,manager,todo,focus,timer,reminder,productivity,menubar,local,task
 Support URL: https://howardrock88.github.io/TaskIsland/en/support.html
 Privacy Policy URL: https://howardrock88.github.io/TaskIsland/en/privacy.html
 ```
+
+## 简体中文本地化（先不要作为首发必填）
+
+如果后面要同步准备中文商品页，可以在语言菜单里添加：
+
+```text
+Add Localization -> Simplified Chinese
+```
+
+从这些文件复制：
+
+```text
+AppStore/metadata.zh-Hans.md
+AppStore/review-notes.zh-Hans.md
+```
+
+关键字段：
+
+```text
+Name: 任务岛
+Subtitle: 让重要的事，始终在眼前
+Keywords: 任务管理,待办,专注,提醒,效率,悬浮窗,时间管理,本地任务
+Support URL: https://howardrock88.github.io/TaskIsland/support.html
+Privacy Policy URL: https://howardrock88.github.io/TaskIsland/privacy.html
+```
+
+注意：Apple 官方说明里，后续更改主语言通常要求新语言已经作为本地化通过一次审核。所以首发想用英文，就在创建 App 记录时直接选 `English (U.S.)`。
 
 ## App Privacy
 
@@ -178,6 +181,13 @@ dist/appstore/assets/
 
 ```text
 AppStore/appstore-assets-upload-guide.zh-Hans.md
+```
+
+首发英文版优先上传 `English (U.S.)` 这一组：
+
+```text
+dist/appstore/assets/videos/en/taskisland-app-preview-en-1920x1080.mp4
+dist/appstore/assets/screenshots/en-promo/
 ```
 
 图标如果 App Store Connect 要求上传 App Icon，使用素材目录里的 1024x1024 预览，或从正式 App icon 集导出。
