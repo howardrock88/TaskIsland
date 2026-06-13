@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest an improvement for TaskIsland.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. A concrete use case helps decide what to build next.
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you want to do?
+      description: Describe the workflow or need.
+      placeholder: "I want TaskIsland to..."
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What is hard today?
+      description: Explain what feels missing, slow, or inconvenient.
+    validations:
+      required: false
+  - type: textarea
+    id: idea
+    attributes:
+      label: Suggested solution
+      description: If you have a design or behavior in mind, describe it here.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Floating island
+        - Task panel
+        - Focus timer
+        - Reminders integration
+        - Import/export
+        - Appearance settings
+        - Other
+    validations:
+      required: false
