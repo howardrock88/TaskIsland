@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Privacy policy
+    url: https://howardrock88.github.io/TaskIsland/privacy.html
+    about: Read how TaskIsland handles data.
+  - name: Support page
+    url: https://howardrock88.github.io/TaskIsland/support.html
+    about: Read support information for TaskIsland.
