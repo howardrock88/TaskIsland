@@ -98,6 +98,13 @@ AppStore/age-rating-answers.zh-Hans.md
 4. 点击验证/交付。
 5. 等 App Store Connect 处理构建。
 
+如果你想用命令行上传，可以先配置 App Store Connect API Key 或 Apple ID App 专用密码，然后运行：
+
+```sh
+Scripts/upload-appstore-package.sh --validate
+Scripts/upload-appstore-package.sh --upload --wait
+```
+
 Transporter 指南见：
 
 ```text

@@ -36,6 +36,38 @@ https://apps.apple.com/us/app/transporter/id1450874784?mt=12
 8. 在版本页面选择刚上传的 build。
 9. 完成 App Review 信息后提交审核。
 
+## 可选：命令行验证和上传
+
+如果不想手动拖 Transporter，可以使用本仓库脚本：
+
+```sh
+Scripts/upload-appstore-package.sh --validate
+Scripts/upload-appstore-package.sh --upload --wait
+```
+
+脚本不会保存账号密码。认证信息只从 `AppStore/submission.env` 或当前 shell 环境读取。
+
+推荐使用 App Store Connect API Key：
+
+```sh
+TASKISLAND_APPSTORE_API_KEY="你的 Key ID"
+TASKISLAND_APPSTORE_API_ISSUER="你的 Issuer ID"
+TASKISLAND_APPSTORE_API_KEY_PATH="/完整路径/AuthKey_你的KeyID.p8"
+```
+
+也可以使用 Apple ID 的 App 专用密码，并先存入钥匙串：
+
+```sh
+xcrun altool --store-password-in-keychain-item TASKISLAND_APPSTORE_CONNECT_PASSWORD -u "你的 Apple ID 邮箱" -p "App 专用密码"
+```
+
+然后在本地 `AppStore/submission.env` 填：
+
+```text
+TASKISLAND_APPSTORE_UPLOAD_USERNAME="你的 Apple ID 邮箱"
+TASKISLAND_APPSTORE_UPLOAD_PASSWORD_KEYCHAIN="TASKISLAND_APPSTORE_CONNECT_PASSWORD"
+```
+
 ## 上传前检查
 
 我会在生成正式包后确认：

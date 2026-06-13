@@ -19,6 +19,7 @@ APPSTORE_PROMO_ASSETS_SCRIPT="$ROOT_DIR/Scripts/prepare-appstore-promo-assets.sh
 APPSTORE_UPLOAD_KIT_SCRIPT="$ROOT_DIR/Scripts/prepare-appstore-upload-kit.sh"
 APPSTORE_FINALIZE_SCRIPT="$ROOT_DIR/Scripts/finalize-appstore-profile.sh"
 APPSTORE_VERIFY_SCRIPT="$ROOT_DIR/Scripts/verify-appstore-package.sh"
+APPSTORE_UPLOAD_SCRIPT="$ROOT_DIR/Scripts/upload-appstore-package.sh"
 SENSITIVE_FILES_SCRIPT="$ROOT_DIR/Scripts/check-sensitive-files.sh"
 METADATA_LIMITS_SCRIPT="$ROOT_DIR/Scripts/check-appstore-metadata-limits.sh"
 GITHUB_PUBLISH_SCOPE_SCRIPT="$ROOT_DIR/Scripts/preview-github-publish-scope.sh"
@@ -158,7 +159,7 @@ else
     warn "App Store 安装包默认界面语言当前不是英文：$APPSTORE_DEFAULT_LANGUAGE"
 fi
 
-for script in "$APP_SCRIPT" "$APPSTORE_SCRIPT" "$APPSTORE_ASSETS_SCRIPT" "$APPSTORE_PROMO_ASSETS_SCRIPT" "$APPSTORE_UPLOAD_KIT_SCRIPT" "$APPSTORE_FINALIZE_SCRIPT" "$APPSTORE_VERIFY_SCRIPT" "$SENSITIVE_FILES_SCRIPT" "$METADATA_LIMITS_SCRIPT" "$GITHUB_PUBLISH_SCOPE_SCRIPT"; do
+for script in "$APP_SCRIPT" "$APPSTORE_SCRIPT" "$APPSTORE_ASSETS_SCRIPT" "$APPSTORE_PROMO_ASSETS_SCRIPT" "$APPSTORE_UPLOAD_KIT_SCRIPT" "$APPSTORE_FINALIZE_SCRIPT" "$APPSTORE_VERIFY_SCRIPT" "$APPSTORE_UPLOAD_SCRIPT" "$SENSITIVE_FILES_SCRIPT" "$METADATA_LIMITS_SCRIPT" "$GITHUB_PUBLISH_SCOPE_SCRIPT"; do
     if [[ -f "$script" ]]; then
         if bash -n "$script"; then
             ok "脚本语法正确：${script#$ROOT_DIR/}"
