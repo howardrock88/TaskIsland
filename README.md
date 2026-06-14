@@ -21,6 +21,11 @@
 
 ## 更新说明
 
+### 0.1.9 - 2026-06-14
+
+- 将直接分发版应用图标对齐到 App Store 最新图标，保证 Dock、应用程序和安装包里的视觉一致。
+- 重新生成安装包图标资源，避免本机安装后仍显示旧图标或旧缓存图标。
+
 ### 0.1.8 - 2026-06-14
 
 - 更换应用图标为更简洁的玻璃底 + 数字岛信号点形式，提升 Dock、小尺寸图标和 App Store 图标的识别度。
@@ -170,7 +175,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.8.pkg
+open dist/github/TaskIsland-0.1.9.pkg
 ```
 
 构建 `.dmg`：
@@ -178,7 +183,7 @@ open dist/github/TaskIsland-0.1.8.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.8.dmg
+open dist/github/TaskIsland-0.1.9.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。
