@@ -21,6 +21,11 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ## Release Notes
 
+### 0.1.13 - 2026-06-14
+
+- Fixed custom background colors applying to the three floating island states but not to the main task panel.
+- The main task panel, section glass tint, and panel stroke now follow the same background color setting while preserving glass highlights and readability.
+
 ### 0.1.12 - 2026-06-14
 
 - Fixed the main task panel corners not being fully clipped, preventing background color from showing between the rounded panel and the rectangular window bounds.
@@ -188,7 +193,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.12.pkg
+open dist/github/TaskIsland-0.1.13.pkg
 ```
 
 Build the `.dmg` image:
@@ -196,7 +201,7 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.12.dmg
+open dist/github/TaskIsland-0.1.13.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.

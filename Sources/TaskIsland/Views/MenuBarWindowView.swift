@@ -742,7 +742,7 @@ struct MenuBarWindowView: View {
                     ColorPicker("", selection: capsuleBackgroundColorBinding, supportsOpacity: false)
                         .labelsHidden()
                         .frame(width: 42)
-                        .help(t("修改悬浮窗玻璃底色", "Change the island glass tint"))
+                        .help(t("同步修改悬浮岛和任务面板玻璃底色", "Change the shared island and task panel glass tint"))
                     Button(t("恢复默认", "Reset")) {
                         settings.capsuleBackgroundColorHex = AppSettings.defaultCapsuleBackgroundColorHex
                     }
@@ -1489,69 +1489,79 @@ struct MenuBarWindowView: View {
     }
 
     private var panelTintColors: [Color] {
+        let tint = sharedGlassTintColor
         if settings.darkGlassMode {
             return [
-                Color.black.opacity(0.34),
-                Color(red: 0.08, green: 0.13, blue: 0.19).opacity(0.34),
-                Color(red: 0.12, green: 0.28, blue: 0.34).opacity(0.18),
-                Color(red: 0.16, green: 0.13, blue: 0.24).opacity(0.18)
+                Color.black.opacity(0.36),
+                tint.opacity(0.24),
+                tint.opacity(0.13),
+                Color.black.opacity(0.24)
             ]
         }
 
         return [
             Color.white.opacity(0.16),
-            Color(red: 0.57, green: 0.90, blue: 1.0).opacity(0.10),
-            Color(red: 0.70, green: 1.0, blue: 0.70).opacity(0.055),
-            Color(red: 1.0, green: 0.82, blue: 0.96).opacity(0.040)
+            tint.opacity(0.30),
+            tint.opacity(0.16),
+            Color.white.opacity(0.08)
         ]
     }
 
     private var panelHighlightColors: [Color] {
+        let tint = sharedGlassTintColor
         if settings.darkGlassMode {
             return [
                 .white.opacity(0.15),
-                Color(red: 0.48, green: 0.88, blue: 1.0).opacity(0.08),
+                tint.opacity(0.10),
                 .clear
             ]
         }
 
         return [
             .white.opacity(0.32),
-            .white.opacity(0.080),
+            tint.opacity(0.10),
             .clear
         ]
     }
 
     private var panelStrokeColors: [Color] {
+        let tint = sharedGlassTintColor
         if settings.darkGlassMode {
             return [
                 .white.opacity(0.42),
-                Color(red: 0.44, green: 0.86, blue: 1.0).opacity(0.26),
+                tint.opacity(0.34),
                 .white.opacity(0.10)
             ]
         }
 
         return [
             .white.opacity(0.80),
-            Color(red: 0.70, green: 0.94, blue: 1.0).opacity(0.34),
+            tint.opacity(0.42),
             .white.opacity(0.22)
         ]
     }
 
     private var sectionTintColors: [Color] {
+        let tint = sharedGlassTintColor
         if settings.darkGlassMode {
             return [
                 Color.black.opacity(0.20),
-                .white.opacity(0.030),
-                Color(red: 0.22, green: 0.56, blue: 0.76).opacity(0.035)
+                tint.opacity(0.075),
+                Color.black.opacity(0.055)
             ]
         }
 
         return [
             .white.opacity(0.13),
-            .white.opacity(0.040),
-            Color(red: 0.55, green: 0.92, blue: 1.0).opacity(0.030)
+            tint.opacity(0.095),
+            .white.opacity(0.035)
         ]
+    }
+
+    private var sharedGlassTintColor: Color {
+        Color(taskIslandHex: settings.capsuleBackgroundColorHex)
+            ?? Color(taskIslandHex: AppSettings.defaultCapsuleBackgroundColorHex)
+            ?? Color(red: 0.78, green: 0.94, blue: 1.0)
     }
 }
 
