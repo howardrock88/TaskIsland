@@ -23,7 +23,7 @@ final class StatusItemController: NSObject {
             button.target = self
             button.action = #selector(toggleTaskPanel)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "任务岛"
+            button.toolTip = settings.localized("任务岛", "TaskIsland")
         }
     }
 
@@ -31,7 +31,7 @@ final class StatusItemController: NSObject {
         guard let button = statusItem.button else { return }
 
         let imageName = store.incompleteCount == 0 ? "checkmark.circle.fill" : "circle.dashed.inset.filled"
-        button.image = NSImage(systemSymbolName: imageName, accessibilityDescription: "任务岛")
+        button.image = NSImage(systemSymbolName: imageName, accessibilityDescription: settings.localized("任务岛", "TaskIsland"))
         button.imagePosition = .imageLeading
         button.title = statusTitle
         button.toolTip = tooltip
@@ -39,7 +39,7 @@ final class StatusItemController: NSObject {
 
     private var statusTitle: String {
         guard store.incompleteCount > 0 else {
-            return " 任务岛"
+            return " " + settings.localized("任务岛", "TaskIsland")
         }
 
         if settings.showTitleInMenuBar, let currentTask = store.currentTask {
@@ -51,10 +51,10 @@ final class StatusItemController: NSObject {
 
     private var tooltip: String {
         guard store.incompleteCount > 0 else {
-            return "任务岛：暂无待办"
+            return settings.localized("任务岛：暂无待办", "TaskIsland: No tasks")
         }
 
-        return "任务岛：\(store.incompleteCount) 个待办"
+        return settings.localized("任务岛：\(store.incompleteCount) 个待办", "TaskIsland: \(store.incompleteCount) tasks")
     }
 
     @objc private func toggleTaskPanel() {

@@ -14,11 +14,75 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 - **Task panel views**: All, Today, Suggestions, High Priority, Upcoming, No Date, Tags, Projects, Completed, and Review.
 - **Rich task details**: notes, arbitrary due date, arbitrary reminder time, repeat rule, project, tags, estimated focus minutes, postpone, and “set as current”.
 - **Custom appearance**: dark glass mode, island transparency, background color, text color, priority colors, top position, and drag placement.
+- **Chinese / English UI**: switch between Chinese and English in Settings. The main UI, islands, quick add, app menu, notifications, and shortcut settings update immediately.
 - **Local-first data**: SwiftData storage, no account required; JSON, Markdown, and CSV import / export.
 - **macOS integration**: Apple Reminders import / export, local notifications, `taskisland://` URL Scheme, and installer login-start configuration.
 - **Installable builds**: scripts generate `.app`, `.pkg`, and `.dmg` packages for `/Applications/任务岛.app`.
 
 ## Release Notes
+
+### 0.1.14 - 2026-06-14
+
+- Adjusted the main task panel background by removing the overly bright top-left gradient and radial highlight that could reduce icon and button readability.
+- The main task panel now uses a more even same-color glass tint while still following the user's background color setting.
+
+### 0.1.13 - 2026-06-14
+
+- Fixed custom background colors applying to the three floating island states but not to the main task panel.
+- The main task panel, section glass tint, and panel stroke now follow the same background color setting while preserving glass highlights and readability.
+
+### 0.1.12 - 2026-06-14
+
+- Fixed the main task panel corners not being fully clipped, preventing background color from showing between the rounded panel and the rectangular window bounds.
+- The panel host layer now clips to the continuous rounded corner shape, and the glass background, highlights, and stroke are constrained to the same rounded region.
+
+### 0.1.11 - 2026-06-14
+
+- Adjusted the app icon scale inside the 1024×1024 canvas: the visible area is now 860×860 with 82px margins on each side for a more balanced Dock and Applications-folder appearance.
+
+### 0.1.10 - 2026-06-14
+
+- Fixed cases where a locally installed build could still show the old Dock icon; the app now applies the bundled latest icon when it starts.
+
+### 0.1.9 - 2026-06-14
+
+- Aligned the direct-distribution app icon with the latest App Store icon so the Dock, Applications folder, and installers use the same visual.
+- Regenerated the installer icon source to avoid installed builds showing an older icon or cached icon variant.
+
+### 0.1.8 - 2026-06-14
+
+- Replaced the app icon with a cleaner glass tile and Number Island signal-dot style for better recognition in the Dock, small sizes, and App Store assets.
+- Updated the icon source to a standard 1024×1024 image, which is now used for `.app`, `.dmg`, `.pkg`, and App Store asset generation.
+
+### 0.1.7 - 2026-06-13
+
+- Added an interface language setting with Chinese and English options; changes apply immediately.
+- Localized the floating island, task panel, task rows, task details, quick add, menu bar, app menu, reminder notifications, and shortcut settings.
+- Dates, focus duration, priorities, repeat rules, postpone options, and import / export messages now follow the selected language.
+- Task content itself is not translated, so existing user data stays untouched.
+
+### 0.1.6 - 2026-06-11
+
+- Added a focus-completion attention state: when a focus timer finishes naturally, Focus Island stays visible until the user confirms with Done.
+- Added a stronger focus-completion animation with full-width sweep light, flowing border highlights, and a pulsing heartbeat-style outline.
+- Strengthened the completion sound to 5 notification chimes and fixed rapid replay cases where only 1-2 sounds were audible.
+- Fixed a focus-completion transition where Focus Island could briefly shrink back to Number Island, leaving only the sound cue visible.
+- Fixed previously focused tasks starting as immediately complete; restarting after Stop now begins a fresh round, while paused focus can still resume the current round.
+- Simplified the completion interaction by removing the duplicate `×` button. The Done button now directly dismisses Focus Island without opening the task panel.
+
+### 0.1.5 - 2026-06-07
+
+- Fixed the distribution packaging flow: `.app` bundles are now signed and strictly verified after packaging, and `.dmg` / `.pkg` scripts no longer overwrite Developer ID signatures with ad-hoc signatures.
+- Added Developer ID signing and Apple Notary Service environment variables for building Gatekeeper-ready public releases.
+- Packaging now copies release binaries from explicit architecture directories and supports `TASKISLAND_ARCHS`, `TASKISLAND_MIN_MACOS`, and `TASKISLAND_PACKAGE_SUFFIX` for separate architecture packages.
+- Fixed the `.pkg` post-install launch command to open `/Applications/任务岛.app` directly.
+
+### 0.1.4 - 2026-06-04
+
+- Refined the visual system while keeping the existing Number Island, Focus Island, and Action Island structure.
+- Improved island glass highlights, visible edges, and task-row hierarchy, and removed the decorative highlight that could read as a stray diagonal line.
+- Unified glass material, strokes, and shadow details across the task panel, settings panel, task rows, and buttons.
+- Added the local rollback marker `visual-baseline-20260604-152102` for returning to the pre-refinement version.
 
 ### 0.1.3 - 2026-06-03
 
@@ -102,7 +166,8 @@ Customize quick-add shortcuts, choose export formats, refresh, import, export, i
 
 ## Requirements
 
-- macOS 26 or later
+- Apple Silicon: macOS 15 or later
+- Intel: macOS 15 or later
 - Xcode / Swift 6.2 toolchain
 
 ## Run
@@ -133,7 +198,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/TaskIsland-0.1.3.pkg
+open dist/github/TaskIsland-0.1.14.pkg
 ```
 
 Build the `.dmg` image:
@@ -141,10 +206,35 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/TaskIsland-0.1.3.dmg
+open dist/github/TaskIsland-0.1.14.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.
+
+Local builds use an ad-hoc app signature by default, and `.pkg` installers are unsigned by default. That is suitable for development-machine testing only. Public distribution needs Developer ID signing and notarization, for example:
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_DMG_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-dmg.sh
+```
+
+```sh
+TASKISLAND_APP_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+TASKISLAND_INSTALLER_SIGN_IDENTITY="Developer ID Installer: Your Name (TEAMID)" \
+TASKISLAND_NOTARY_PROFILE="taskisland-notary" \
+Scripts/package-pkg.sh
+```
+
+To build a separate Intel package:
+
+```sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-dmg.sh
+TASKISLAND_ARCHS="x86_64" TASKISLAND_MIN_MACOS="15.0" TASKISLAND_PACKAGE_SUFFIX="-intel" Scripts/package-pkg.sh
+```
+
+The Mac App Store channel is kept separate from GitHub Release packages. App Store-specific files, submission notes, the local configuration template, and upload-package output are documented in [AppStore/README.md](AppStore/README.md).
 
 ## Checks
 
@@ -176,11 +266,12 @@ Scripts                     packaging and README image generation scripts
 assets/posters              GitHub presentation posters
 assets/screenshots          GitHub interface screenshots
 docs                        research and project notes
+AppStore                    Mac App Store channel configuration and submission notes
 ```
 
 ## Distribution Note
 
-This build is not yet signed and notarized with Apple Developer ID. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service.
+Local builds are not signed and notarized with Apple Developer ID, so Gatekeeper will block downloaded copies on other machines. Before distributing to end users, sign the app / installer with Developer ID certificates and submit the package to Apple Notary Service. The Mac App Store channel uses the separate `AppStore/` configuration and `dist/appstore/` output directory.
 
 ## License
 

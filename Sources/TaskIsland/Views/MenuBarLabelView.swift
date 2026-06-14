@@ -20,7 +20,7 @@ struct MenuBarLabelView: View {
 
     private var labelText: String {
         if store.incompleteCount == 0 {
-            return "完成"
+            return settings.localized("完成", "Done")
         }
 
         let title = store.menuBarTitle

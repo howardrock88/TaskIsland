@@ -5,9 +5,14 @@ import TaskIslandCore
 @MainActor
 final class ReminderNotificationScheduler {
     private let identifierPrefix = "taskisland-reminder-"
+    private let settings: AppSettings
     private var inAppReminderTasks: [String: Task<Void, Never>] = [:]
 
     var onReminderDue: ((UUID) -> Void)?
+
+    init(settings: AppSettings) {
+        self.settings = settings
+    }
 
     deinit {
         for task in inAppReminderTasks.values {
@@ -34,6 +39,7 @@ final class ReminderNotificationScheduler {
 
         syncInAppReminders(snapshots)
 
+        let notificationTitle = settings.localized("任务岛提醒", "TaskIsland Reminder")
         let center = UNUserNotificationCenter.current()
         guard !snapshots.isEmpty else {
             center.getPendingNotificationRequests { [identifierPrefix] requests in
@@ -59,7 +65,7 @@ final class ReminderNotificationScheduler {
                 guard granted else { return }
                 for snapshot in snapshots {
                     let content = UNMutableNotificationContent()
-                    content.title = "任务岛提醒"
+                    content.title = notificationTitle
                     content.body = snapshot.body.isEmpty ? snapshot.title : "\(snapshot.title)\n\(snapshot.body)"
                     content.sound = .default
 
@@ -77,7 +83,7 @@ final class ReminderNotificationScheduler {
     }
 
     private func notificationBody(for task: TaskItem) -> String {
-        var parts: [String] = [task.priority.title]
+        var parts: [String] = [task.priority.localizedTitle(settings: settings)]
         if let projectName = task.projectName, !projectName.isEmpty {
             parts.append(projectName)
         }
