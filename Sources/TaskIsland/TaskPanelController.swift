@@ -23,7 +23,7 @@ final class TaskPanelController: NSObject, NSWindowDelegate {
         panel.onCancel = { [weak self] in
             self?.hide()
         }
-        panel.contentView = DraggableHostingView(
+        let hostingView = DraggableHostingView(
             rootView: MenuBarWindowView(panelState: panelState, onDismiss: { [weak self] in
                 self?.hide()
             }, onPinChanged: { [weak self] isPinned in
@@ -37,6 +37,19 @@ final class TaskPanelController: NSObject, NSWindowDelegate {
                 .environmentObject(settings)
                 .frame(width: panelSize.width, height: panelSize.height)
         )
+        hostingView.frame = NSRect(origin: .zero, size: panelSize)
+        hostingView.autoresizingMask = [.width, .height]
+        hostingView.wantsLayer = true
+        if let layer = hostingView.layer {
+            layer.backgroundColor = NSColor.clear.cgColor
+            layer.isOpaque = false
+            layer.masksToBounds = true
+            layer.cornerRadius = 28
+            if #available(macOS 10.15, *) {
+                layer.cornerCurve = .continuous
+            }
+        }
+        panel.contentView = hostingView
     }
 
     func toggle(relativeTo button: NSStatusBarButton?) {

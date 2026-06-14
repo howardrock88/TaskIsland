@@ -21,6 +21,11 @@
 
 ## 更新说明
 
+### 0.1.12 - 2026-06-14
+
+- 修复主任务面板四角没有完整裁切的问题，避免圆角和窗口直角之间露出背景色。
+- 面板宿主层现在会按连续圆角裁切，主界面的玻璃背景、高光和描边也会统一限制在圆角区域内。
+
 ### 0.1.11 - 2026-06-14
 
 - 调整应用图标在 1024×1024 画布中的显示比例：可见区域为 860×860，四边留白 82px，让 Dock 和应用程序列表里的图标观感更稳。
@@ -183,7 +188,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.11.pkg
+open dist/github/TaskIsland-0.1.12.pkg
 ```
 
 构建 `.dmg`：
@@ -191,7 +196,7 @@ open dist/github/TaskIsland-0.1.11.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.11.dmg
+open dist/github/TaskIsland-0.1.12.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

@@ -61,7 +61,6 @@ struct MenuBarWindowView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .taskIslandGlass(in: panelShape)
         .background(panelTint)
-        .clipShape(panelShape)
         .overlay {
             darkPanelShade
                 .allowsHitTesting(false)
@@ -71,6 +70,8 @@ struct MenuBarWindowView: View {
                 .allowsHitTesting(false)
         }
         .overlay(panelStroke)
+        .clipShape(panelShape)
+        .contentShape(panelShape)
         .shadow(color: .black.opacity(settings.darkGlassMode ? 0.34 : 0.20), radius: 30, x: 0, y: 22)
         .shadow(color: .white.opacity(settings.darkGlassMode ? 0.05 : 0.18), radius: 2, x: 0, y: -1)
         .preferredColorScheme(settings.darkGlassMode ? .dark : nil)
