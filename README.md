@@ -21,6 +21,11 @@
 
 ## 更新说明
 
+### 0.1.14 - 2026-06-14
+
+- 调整主任务面板背景显示方式，去掉左上角过亮的渐变和径向高光，避免图标和按钮在浅色区域里看不清。
+- 主任务面板现在使用更均匀的同色玻璃底色，仍会跟随用户设置的背景颜色。
+
 ### 0.1.13 - 2026-06-14
 
 - 修复自定义背景颜色只影响三个悬浮岛、不影响主任务面板的问题。
@@ -193,7 +198,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.13.pkg
+open dist/github/TaskIsland-0.1.14.pkg
 ```
 
 构建 `.dmg`：
@@ -201,7 +206,7 @@ open dist/github/TaskIsland-0.1.13.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.13.dmg
+open dist/github/TaskIsland-0.1.14.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。

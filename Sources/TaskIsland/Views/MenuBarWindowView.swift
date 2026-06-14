@@ -1367,47 +1367,21 @@ struct MenuBarWindowView: View {
 
     private var panelTint: some View {
         panelShape
-            .fill(
-                LinearGradient(
-                    colors: panelTintColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .fill(panelBaseTint)
     }
 
     private var panelHighlights: some View {
         ZStack {
             panelShape
-                .fill(
-                    LinearGradient(
-                        colors: panelHighlightColors,
-                        startPoint: .topLeading,
-                        endPoint: UnitPoint(x: 0.72, y: 0.62)
-                    )
-                )
+                .fill(panelSurfaceHighlight)
                 .blendMode(.plusLighter)
-                .opacity(0.72)
+                .opacity(settings.darkGlassMode ? 0.32 : 0.42)
 
             panelShape
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.white.opacity(settings.darkGlassMode ? 0.14 : 0.20),
-                            Color.clear
-                        ],
-                        center: .topLeading,
-                        startRadius: 18,
-                        endRadius: 270
-                    )
-                )
-                .blendMode(.plusLighter)
-
-            panelShape
-                .stroke(.white.opacity(settings.darkGlassMode ? 0.16 : 0.22), lineWidth: 4)
-                .blur(radius: 5)
+                .stroke(.white.opacity(settings.darkGlassMode ? 0.10 : 0.16), lineWidth: 3)
+                .blur(radius: 4)
                 .padding(2)
-                .opacity(settings.darkGlassMode ? 0.34 : 0.42)
+                .opacity(settings.darkGlassMode ? 0.22 : 0.26)
         }
         .clipShape(panelShape)
     }
@@ -1417,15 +1391,7 @@ struct MenuBarWindowView: View {
         if settings.darkGlassMode {
             panelShape
                 .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.black.opacity(0.30),
-                            Color(red: 0.02, green: 0.05, blue: 0.08).opacity(0.26),
-                            Color.black.opacity(0.38)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                    Color.black.opacity(0.30)
                 )
                 .clipShape(panelShape)
         }
@@ -1433,14 +1399,7 @@ struct MenuBarWindowView: View {
 
     private var panelStroke: some View {
         panelShape
-            .stroke(
-                LinearGradient(
-                    colors: panelStrokeColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                lineWidth: 1
-            )
+            .stroke(panelStrokeColor, lineWidth: 1)
     }
 
     private func glassSection(cornerRadius: CGFloat) -> some View {
@@ -1488,57 +1447,31 @@ struct MenuBarWindowView: View {
             }
     }
 
-    private var panelTintColors: [Color] {
+    private var panelBaseTint: Color {
         let tint = sharedGlassTintColor
         if settings.darkGlassMode {
-            return [
-                Color.black.opacity(0.36),
-                tint.opacity(0.24),
-                tint.opacity(0.13),
-                Color.black.opacity(0.24)
-            ]
+            return tint.opacity(0.18)
         }
 
-        return [
-            Color.white.opacity(0.16),
-            tint.opacity(0.30),
-            tint.opacity(0.16),
-            Color.white.opacity(0.08)
-        ]
+        return tint.opacity(0.28)
     }
 
-    private var panelHighlightColors: [Color] {
+    private var panelSurfaceHighlight: Color {
         let tint = sharedGlassTintColor
         if settings.darkGlassMode {
-            return [
-                .white.opacity(0.15),
-                tint.opacity(0.10),
-                .clear
-            ]
+            return tint.opacity(0.055)
         }
 
-        return [
-            .white.opacity(0.32),
-            tint.opacity(0.10),
-            .clear
-        ]
+        return Color.white.opacity(0.10)
     }
 
-    private var panelStrokeColors: [Color] {
+    private var panelStrokeColor: Color {
         let tint = sharedGlassTintColor
         if settings.darkGlassMode {
-            return [
-                .white.opacity(0.42),
-                tint.opacity(0.34),
-                .white.opacity(0.10)
-            ]
+            return tint.opacity(0.34)
         }
 
-        return [
-            .white.opacity(0.80),
-            tint.opacity(0.42),
-            .white.opacity(0.22)
-        ]
+        return tint.opacity(0.38)
     }
 
     private var sectionTintColors: [Color] {
