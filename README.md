@@ -21,6 +21,11 @@
 
 ## 更新说明
 
+### 0.1.8 - 2026-06-14
+
+- 更换应用图标为更简洁的玻璃底 + 数字岛信号点形式，提升 Dock、小尺寸图标和 App Store 图标的识别度。
+- 图标源文件更新为标准 1024×1024 尺寸，后续 `.app`、`.dmg`、`.pkg` 和 App Store 素材都会使用这一版。
+
 ### 0.1.7 - 2026-06-13
 
 - 新增界面语言设置，可在中文和 English 之间切换，切换后立即生效。
@@ -165,7 +170,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.7.pkg
+open dist/github/TaskIsland-0.1.8.pkg
 ```
 
 构建 `.dmg`：
@@ -173,7 +178,7 @@ open dist/github/TaskIsland-0.1.7.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.7.dmg
+open dist/github/TaskIsland-0.1.8.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。
