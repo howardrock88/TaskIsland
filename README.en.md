@@ -21,6 +21,10 @@ TaskIsland is a local-first floating task app for macOS. It keeps important task
 
 ## Release Notes
 
+### 0.1.10 - 2026-06-14
+
+- Fixed cases where a locally installed build could still show the old Dock icon; the app now applies the bundled latest icon when it starts.
+
 ### 0.1.9 - 2026-06-14
 
 - Aligned the direct-distribution app icon with the latest App Store icon so the Dock, Applications folder, and installers use the same visual.
@@ -175,7 +179,7 @@ Build the `.pkg` installer:
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.9.pkg
+open dist/github/TaskIsland-0.1.10.pkg
 ```
 
 Build the `.dmg` image:
@@ -183,7 +187,7 @@ Build the `.dmg` image:
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.9.dmg
+open dist/github/TaskIsland-0.1.10.dmg
 ```
 
 The `.pkg` installer places `任务岛.app` in `/Applications`, registers it with LaunchServices / Spotlight, and starts the app after installation.

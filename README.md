@@ -21,6 +21,10 @@
 
 ## 更新说明
 
+### 0.1.10 - 2026-06-14
+
+- 修复本机安装后 Dock 仍可能显示旧图标的问题；程序启动时会主动使用应用包内的最新图标。
+
 ### 0.1.9 - 2026-06-14
 
 - 将直接分发版应用图标对齐到 App Store 最新图标，保证 Dock、应用程序和安装包里的视觉一致。
@@ -175,7 +179,7 @@ open .build/package/任务岛.app
 ```sh
 chmod +x Scripts/package-pkg.sh
 Scripts/package-pkg.sh
-open dist/github/TaskIsland-0.1.9.pkg
+open dist/github/TaskIsland-0.1.10.pkg
 ```
 
 构建 `.dmg`：
@@ -183,7 +187,7 @@ open dist/github/TaskIsland-0.1.9.pkg
 ```sh
 chmod +x Scripts/package-dmg.sh
 Scripts/package-dmg.sh
-open dist/github/TaskIsland-0.1.9.dmg
+open dist/github/TaskIsland-0.1.10.dmg
 ```
 
 `.pkg` 会把 `任务岛.app` 安装到 `/Applications`，注册系统应用索引，并在安装后启动应用。
