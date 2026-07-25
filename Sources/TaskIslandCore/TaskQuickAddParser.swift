@@ -19,7 +19,7 @@ public enum TaskQuickAddParser {
         now: Date = Date(),
         calendar: Calendar = .current
     ) -> ParsedTaskInput {
-        var working = rawInput
+        var working = normalizedSpokenMetadata(rawInput)
         var priority = fallbackPriority
         var tags: [String] = []
         var projectName: String?
@@ -29,7 +29,7 @@ public enum TaskQuickAddParser {
         var repeatRule: TaskRepeatRule?
         var isToday = false
 
-        let priorityMatches = matches(in: working, pattern: #"(?i)(^|\s)(!高|!high|!p1|p1|优先级高|高优|!中|!medium|!p2|p2|中优|!低|!low|!p3|p3|低优)(?=\s|$)"#)
+        let priorityMatches = matches(in: working, pattern: #"(?i)(^|\s)(!高|!high|!p1|p1|优先级高|高优先级|高优|!中|!medium|!p2|p2|优先级中|中优先级|中优|!低|!low|!p3|p3|优先级低|低优先级|低优)(?=\s|$)"#)
         for match in priorityMatches.reversed() {
             let token = substring(working, range: match.range(at: 2)).lowercased()
             if token.contains("高") || token.contains("high") || token.contains("p1") {
@@ -45,6 +45,18 @@ public enum TaskQuickAddParser {
         let tagMatches = matches(in: working, pattern: #"(?<!\S)#([\p{L}\p{N}_-]+)"#)
         for match in tagMatches.reversed() {
             let tag = substring(working, range: match.range(at: 1))
+            if !tags.contains(tag) {
+                tags.insert(tag, at: 0)
+            }
+            working = removeRange(match.range, from: working)
+        }
+
+        let spokenTagMatches = matches(
+            in: working,
+            pattern: #"(^|\s)标签(?:是|为)?\s*([\p{L}\p{N}_-]+)(?=\s|$)"#
+        )
+        for match in spokenTagMatches.reversed() {
+            let tag = substring(working, range: match.range(at: 2))
             if !tags.contains(tag) {
                 tags.insert(tag, at: 0)
             }
@@ -206,7 +218,8 @@ public enum TaskQuickAddParser {
             if text.contains("下午") || text.contains("晚上") || text.contains("今晚") || text.contains("明晚") {
                 if hour < 12 { hour += 12 }
             }
-            return (DateComponents(hour: min(hour, 23), minute: min(minute, 59)), match.range)
+            let range = timeRangeIncludingQualifier(before: match.range, in: text)
+            return (DateComponents(hour: min(hour, 23), minute: min(minute, 59)), range)
         }
 
         if let range = nsRange(of: "今晚", in: text) ?? nsRange(of: "晚上", in: text) {
@@ -248,6 +261,68 @@ public enum TaskQuickAddParser {
     private static func normalizedTitle(_ text: String) -> String {
         text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func normalizedSpokenMetadata(_ text: String) -> String {
+        var normalized = text.replacingOccurrences(
+            of: #"[，,。；;、]+"#,
+            with: " ",
+            options: .regularExpression
+        )
+
+        let numberMatches = matches(
+            in: normalized,
+            pattern: #"([零〇一二两三四五六七八九十]{1,3})(?=\s*(?:点|分钟|小时))"#
+        )
+        for match in numberMatches.reversed() {
+            let token = substring(normalized, range: match.range(at: 1))
+            guard let number = chineseNumber(token),
+                  let range = Range(match.range(at: 1), in: normalized) else {
+                continue
+            }
+            normalized.replaceSubrange(range, with: String(number))
+        }
+
+        return normalized
+    }
+
+    private static func chineseNumber(_ token: String) -> Int? {
+        let digits: [Character: Int] = [
+            "零": 0, "〇": 0, "一": 1, "二": 2, "两": 2,
+            "三": 3, "四": 4, "五": 5, "六": 6, "七": 7,
+            "八": 8, "九": 9
+        ]
+
+        if let tenIndex = token.firstIndex(of: "十") {
+            let left = token[..<tenIndex]
+            let rightStart = token.index(after: tenIndex)
+            let right = token[rightStart...]
+            let tens = left.last.flatMap { digits[$0] } ?? 1
+            let ones = right.first.flatMap { digits[$0] } ?? 0
+            return tens * 10 + ones
+        }
+
+        var value = 0
+        for character in token {
+            guard let digit = digits[character] else { return nil }
+            value = value * 10 + digit
+        }
+        return value
+    }
+
+    private static func timeRangeIncludingQualifier(
+        before timeRange: NSRange,
+        in text: String
+    ) -> NSRange {
+        let prefixRange = NSRange(location: 0, length: timeRange.location)
+        let prefix = substring(text, range: prefixRange)
+        guard let qualifier = matches(
+            in: prefix,
+            pattern: #"(?:上午|早上|下午|晚上)\s*$"#
+        ).last else {
+            return timeRange
+        }
+        return NSUnionRange(qualifier.range, timeRange)
     }
 
     private static func matches(in text: String, pattern: String) -> [NSTextCheckingResult] {

@@ -42,6 +42,21 @@ public struct TaskDailyReview {
     public let focusSeconds: TimeInterval
 }
 
+public struct TaskDeletionSnapshot: Identifiable {
+    public let id: UUID
+    public let title: String
+    public let wasFocusAttention: Bool
+
+    fileprivate let task: TaskItem
+
+    fileprivate init(task: TaskItem, wasFocusAttention: Bool) {
+        id = task.id
+        title = task.title
+        self.task = task
+        self.wasFocusAttention = wasFocusAttention
+    }
+}
+
 public enum TaskExportFormat: String, CaseIterable, Identifiable {
     case json
     case markdown
@@ -262,6 +277,7 @@ public final class TaskStore: ObservableObject {
         completedAt: Date? = nil,
         priority: TaskPriority = .medium,
         dueAt: Date? = nil,
+        dueDateIncludesTime: Bool = true,
         reminderAt: Date? = nil,
         repeatRule: TaskRepeatRule? = nil,
         tags: [String] = [],
@@ -284,6 +300,7 @@ public final class TaskStore: ObservableObject {
             sortIndex: nextSortIndex(),
             priority: priority,
             dueAt: dueAt,
+            dueDateIncludesTime: dueDateIncludesTime,
             reminderAt: reminderAt,
             repeatRule: repeatRule,
             tags: tags,
@@ -366,6 +383,31 @@ public final class TaskStore: ObservableObject {
         normalizeCurrentTask()
     }
 
+    @discardableResult
+    public func deleteForUndo(_ task: TaskItem) -> TaskDeletionSnapshot {
+        let snapshot = TaskDeletionSnapshot(
+            task: TaskArchiveItem(task: task).makeTask(),
+            wasFocusAttention: focusAttentionTaskID == task.id
+        )
+        delete(task)
+        return snapshot
+    }
+
+    @discardableResult
+    public func restoreDeletedTask(_ snapshot: TaskDeletionSnapshot) -> TaskItem? {
+        guard tasks.allSatisfy({ $0.id != snapshot.id }) else {
+            return tasks.first { $0.id == snapshot.id }
+        }
+
+        context.insert(snapshot.task)
+        if snapshot.wasFocusAttention {
+            focusAttentionTaskID = snapshot.id
+        }
+        commitAndReload()
+        normalizeCurrentTask()
+        return tasks.first { $0.id == snapshot.id }
+    }
+
     public func setCurrent(_ task: TaskItem) {
         guard !task.isCompleted else { return }
 
@@ -442,6 +484,40 @@ public final class TaskStore: ObservableObject {
         commitAndReload()
     }
 
+    public func updateTask(
+        _ task: TaskItem,
+        title rawTitle: String,
+        priority: TaskPriority,
+        dueAt: Date?,
+        dueDateIncludesTime: Bool,
+        reminderAt: Date?,
+        tags: [String],
+        estimatedMinutes: Int?,
+        isInTodayQueue: Bool,
+        subtasks: [TaskSubtask]
+    ) {
+        let title = rawTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+
+        task.title = title
+        task.priority = priority
+        task.dueAt = dueAt
+        task.dueDateIncludesTime = dueAt != nil && dueDateIncludesTime
+        task.reminderAt = dueDateIncludesTime ? reminderAt : nil
+        task.tags = tags
+        task.estimatedMinutes = estimatedMinutes
+        task.subtasks = subtasks
+
+        if isInTodayQueue {
+            task.todaySortIndex = task.todaySortIndex ?? nextTodaySortIndex()
+        } else {
+            task.todaySortIndex = nil
+        }
+
+        task.updatedAt = Date()
+        commitAndReload()
+    }
+
     public func startFocus(_ task: TaskItem, now: Date = Date(), defaultMinutes: Int = 25, resetElapsed: Bool = false) {
         guard !task.isCompleted else { return }
 
@@ -495,6 +571,21 @@ public final class TaskStore: ObservableObject {
         let accumulated = task.focusSeconds
         guard let startedAt = task.focusStartedAt else { return accumulated }
         return accumulated + max(now.timeIntervalSince(startedAt), 0)
+    }
+
+    public func focusSeconds(for task: TaskItem, on day: Date, now: Date = Date()) -> TimeInterval {
+        let calendar = Calendar.current
+        let storedSessions = task.focusSessions.reduce(TimeInterval(0)) { total, session in
+            total + session.duration(on: day, calendar: calendar)
+        }
+
+        guard let startedAt = task.focusStartedAt else {
+            return storedSessions
+        }
+
+        let activeEnd = max(now, startedAt)
+        let activeSession = TaskFocusSession(startedAt: startedAt, endedAt: activeEnd)
+        return storedSessions + activeSession.duration(on: day, calendar: calendar)
     }
 
     public func focusTargetMinutes(for task: TaskItem, defaultMinutes: Int = 25) -> Int {
@@ -608,7 +699,7 @@ public final class TaskStore: ObservableObject {
             return calendar.isDate(dueAt, inSameDayAs: tomorrow)
         }
         let focusSeconds = tasks.reduce(TimeInterval(0)) { total, task in
-            total + self.focusSeconds(for: task, now: now)
+            total + self.focusSeconds(for: task, on: now, now: now)
         }
 
         return TaskDailyReview(
@@ -883,7 +974,13 @@ public final class TaskStore: ObservableObject {
     private func stopFocusClock(_ task: TaskItem, now: Date) {
         guard let startedAt = task.focusStartedAt else { return }
 
-        task.focusSeconds = task.focusSeconds + max(now.timeIntervalSince(startedAt), 0)
+        let elapsed = max(now.timeIntervalSince(startedAt), 0)
+        task.focusSeconds = task.focusSeconds + elapsed
+        if elapsed > 0 {
+            var sessions = task.focusSessions
+            sessions.append(TaskFocusSession(startedAt: startedAt, endedAt: now, durationSeconds: elapsed))
+            task.focusSessions = sessions
+        }
         task.focusStartedAt = nil
         task.updatedAt = now
     }
@@ -1248,7 +1345,7 @@ public final class TaskStore: ObservableObject {
         let baseURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first ?? FileManager.default.homeDirectoryForCurrentUser
+        ).first ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
 
         return baseURL
             .appendingPathComponent("TaskIsland", isDirectory: true)
@@ -1317,6 +1414,7 @@ private struct TaskArchiveItem: Codable {
     var sortIndex: Int
     var priorityRawValue: Int?
     var dueAt: Date?
+    var dueDateIncludesTime: Bool?
     var reminderAt: Date?
     var repeatRuleRawValue: String?
     var tags: [String]
@@ -1326,6 +1424,7 @@ private struct TaskArchiveItem: Codable {
     var subtasks: [TaskSubtask]
     var focusStartedAt: Date?
     var focusAccumulatedSeconds: Double
+    var focusSessions: [TaskFocusSession]?
     var postponedAt: Date?
     var postponeCount: Int
 
@@ -1341,6 +1440,7 @@ private struct TaskArchiveItem: Codable {
         sortIndex: Int,
         priorityRawValue: Int?,
         dueAt: Date?,
+        dueDateIncludesTime: Bool? = nil,
         reminderAt: Date?,
         repeatRuleRawValue: String?,
         tags: [String],
@@ -1350,6 +1450,7 @@ private struct TaskArchiveItem: Codable {
         subtasks: [TaskSubtask],
         focusStartedAt: Date?,
         focusAccumulatedSeconds: Double,
+        focusSessions: [TaskFocusSession]? = nil,
         postponedAt: Date?,
         postponeCount: Int
     ) {
@@ -1364,6 +1465,7 @@ private struct TaskArchiveItem: Codable {
         self.sortIndex = sortIndex
         self.priorityRawValue = priorityRawValue
         self.dueAt = dueAt
+        self.dueDateIncludesTime = dueDateIncludesTime
         self.reminderAt = reminderAt
         self.repeatRuleRawValue = repeatRuleRawValue
         self.tags = tags
@@ -1373,6 +1475,7 @@ private struct TaskArchiveItem: Codable {
         self.subtasks = subtasks
         self.focusStartedAt = focusStartedAt
         self.focusAccumulatedSeconds = focusAccumulatedSeconds
+        self.focusSessions = focusSessions
         self.postponedAt = postponedAt
         self.postponeCount = postponeCount
     }
@@ -1389,6 +1492,7 @@ private struct TaskArchiveItem: Codable {
         sortIndex = task.sortIndex
         priorityRawValue = task.priority.rawValue
         dueAt = task.dueAt
+        dueDateIncludesTime = task.dueDateIncludesTime
         reminderAt = task.reminderAt
         repeatRuleRawValue = task.repeatRuleRawValue
         tags = task.tags
@@ -1398,6 +1502,7 @@ private struct TaskArchiveItem: Codable {
         subtasks = task.subtasks
         focusStartedAt = task.focusStartedAt
         focusAccumulatedSeconds = task.focusSeconds
+        focusSessions = task.focusSessions
         postponedAt = task.postponedAt
         postponeCount = task.postponeCount
     }
@@ -1415,6 +1520,7 @@ private struct TaskArchiveItem: Codable {
             sortIndex: sortIndex,
             priority: TaskPriority(rawValue: priorityRawValue ?? TaskPriority.medium.rawValue) ?? .medium,
             dueAt: dueAt,
+            dueDateIncludesTime: dueDateIncludesTime ?? true,
             reminderAt: reminderAt,
             repeatRule: repeatRuleRawValue.flatMap(TaskRepeatRule.init(rawValue:)),
             tags: tags,
@@ -1424,6 +1530,7 @@ private struct TaskArchiveItem: Codable {
             subtasks: subtasks,
             focusStartedAt: focusStartedAt,
             focusAccumulatedSeconds: focusAccumulatedSeconds,
+            focusSessions: focusSessions ?? [],
             postponedAt: postponedAt,
             postponeCount: postponeCount
         )
@@ -1440,6 +1547,7 @@ private struct TaskArchiveItem: Codable {
         task.sortIndex = sortIndex
         task.priorityRawValue = priorityRawValue
         task.dueAt = dueAt
+        task.dueDateIncludesTimeRawValue = dueAt == nil ? nil : (dueDateIncludesTime ?? true)
         task.reminderAt = reminderAt
         task.repeatRuleRawValue = repeatRuleRawValue
         task.tags = tags
@@ -1449,6 +1557,7 @@ private struct TaskArchiveItem: Codable {
         task.subtasks = subtasks
         task.focusStartedAt = focusStartedAt
         task.focusAccumulatedSeconds = focusAccumulatedSeconds
+        task.focusSessions = focusSessions ?? []
         task.postponedAt = postponedAt
         task.postponeCountRawValue = postponeCount
         task.updatedAt = updatedAt

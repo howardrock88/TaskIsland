@@ -72,6 +72,39 @@ public struct TaskSubtask: Codable, Equatable, Identifiable {
     }
 }
 
+public struct TaskFocusSession: Codable, Equatable, Identifiable {
+    public var id: UUID
+    public var startedAt: Date
+    public var endedAt: Date
+    public var durationSeconds: TimeInterval
+
+    public init(
+        id: UUID = UUID(),
+        startedAt: Date,
+        endedAt: Date,
+        durationSeconds: TimeInterval? = nil
+    ) {
+        self.id = id
+        self.startedAt = min(startedAt, endedAt)
+        self.endedAt = max(startedAt, endedAt)
+        self.durationSeconds = max(durationSeconds ?? endedAt.timeIntervalSince(startedAt), 0)
+    }
+
+    public func duration(on day: Date, calendar: Calendar = .current) -> TimeInterval {
+        let startOfDay = calendar.startOfDay(for: day)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? day
+        let clippedStart = max(startedAt, startOfDay)
+        let clippedEnd = min(endedAt, endOfDay)
+        guard clippedEnd > clippedStart else { return 0 }
+
+        let sessionInterval = endedAt.timeIntervalSince(startedAt)
+        guard sessionInterval > 0 else { return 0 }
+
+        let clippedInterval = clippedEnd.timeIntervalSince(clippedStart)
+        return min(durationSeconds, max(durationSeconds, 0) * clippedInterval / sessionInterval)
+    }
+}
+
 @Model
 public final class TaskItem {
     @Attribute(.unique)
@@ -86,6 +119,7 @@ public final class TaskItem {
     public var sortIndex: Int
     public var priorityRawValue: Int?
     public var dueAt: Date?
+    public var dueDateIncludesTimeRawValue: Bool?
     public var reminderAt: Date?
     public var repeatRuleRawValue: String?
     public var tagsRawValue: String?
@@ -95,6 +129,7 @@ public final class TaskItem {
     public var subtasksRawValue: String?
     public var focusStartedAt: Date?
     public var focusAccumulatedSeconds: Double?
+    public var focusSessionsRawValue: String?
     public var postponedAt: Date?
     public var postponeCountRawValue: Int?
 
@@ -114,6 +149,20 @@ public final class TaskItem {
         }
         set {
             repeatRuleRawValue = newValue?.rawValue
+            updatedAt = Date()
+        }
+    }
+
+    /// Whether the due date carries a user-visible clock time.
+    /// Existing records predate this field, so a missing value preserves the
+    /// previous behavior and is treated as a timed due date.
+    public var dueDateIncludesTime: Bool {
+        get {
+            guard dueAt != nil else { return false }
+            return dueDateIncludesTimeRawValue ?? true
+        }
+        set {
+            dueDateIncludesTimeRawValue = dueAt == nil ? nil : newValue
             updatedAt = Date()
         }
     }
@@ -165,6 +214,21 @@ public final class TaskItem {
         }
     }
 
+    public var focusSessions: [TaskFocusSession] {
+        get {
+            guard let focusSessionsRawValue,
+                  let data = focusSessionsRawValue.data(using: .utf8),
+                  let decoded = try? JSONDecoder().decode([TaskFocusSession].self, from: data) else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            focusSessionsRawValue = Self.encodedFocusSessions(newValue)
+            updatedAt = Date()
+        }
+    }
+
     public var postponeCount: Int {
         get { postponeCountRawValue ?? 0 }
         set {
@@ -185,6 +249,7 @@ public final class TaskItem {
         sortIndex: Int,
         priority: TaskPriority = .medium,
         dueAt: Date? = nil,
+        dueDateIncludesTime: Bool = true,
         reminderAt: Date? = nil,
         repeatRule: TaskRepeatRule? = nil,
         tags: [String] = [],
@@ -194,6 +259,7 @@ public final class TaskItem {
         subtasks: [TaskSubtask] = [],
         focusStartedAt: Date? = nil,
         focusAccumulatedSeconds: Double = 0,
+        focusSessions: [TaskFocusSession] = [],
         postponedAt: Date? = nil,
         postponeCount: Int = 0
     ) {
@@ -208,6 +274,7 @@ public final class TaskItem {
         self.sortIndex = sortIndex
         self.priorityRawValue = priority.rawValue
         self.dueAt = dueAt
+        self.dueDateIncludesTimeRawValue = dueAt == nil ? nil : dueDateIncludesTime
         self.reminderAt = reminderAt
         self.repeatRuleRawValue = repeatRule?.rawValue
         self.tagsRawValue = tags
@@ -220,6 +287,7 @@ public final class TaskItem {
         self.subtasksRawValue = Self.encodedSubtasks(subtasks)
         self.focusStartedAt = focusStartedAt
         self.focusAccumulatedSeconds = focusAccumulatedSeconds
+        self.focusSessionsRawValue = Self.encodedFocusSessions(focusSessions)
         self.postponedAt = postponedAt
         self.postponeCountRawValue = postponeCount
     }
@@ -236,6 +304,17 @@ public final class TaskItem {
             }
             .filter { !$0.title.isEmpty }
         guard let data = try? JSONEncoder().encode(cleaned) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func encodedFocusSessions(_ sessions: [TaskFocusSession]) -> String? {
+        let cleaned = sessions
+            .filter { $0.durationSeconds > 0 && $0.endedAt > $0.startedAt }
+            .sorted { $0.startedAt < $1.startedAt }
+        guard !cleaned.isEmpty,
+              let data = try? JSONEncoder().encode(cleaned) else {
+            return nil
+        }
         return String(data: data, encoding: .utf8)
     }
 }
