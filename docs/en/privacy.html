@@ -11,13 +11,18 @@
 </head>
 <body>
   <h1>TaskIsland Privacy Policy</h1>
-  <p>Last updated: June 13, 2026</p>
+  <p>Last updated: July 31, 2026</p>
   <h2>Data handling</h2>
-  <p>TaskIsland is a local-first macOS task manager. The current version does not require account login, does not provide cloud sync, does not include advertising SDKs, and does not use third-party analytics. Tasks, tags, projects, reminder times, and focus records are stored locally on the user's Mac by default.</p>
-  <h2>Apple Reminders permission</h2>
-  <p>If the user grants access to Apple Reminders, TaskIsland uses that access only when the user explicitly imports from Apple Reminders or exports TaskIsland tasks to Apple Reminders. TaskIsland does not upload reminders content to developer servers.</p>
-  <h2>Local notifications and files</h2>
-  <p>TaskIsland may request local notification permission to show reminders configured by the user. Users may also explicitly import or export JSON, Markdown, and CSV files.</p>
+  <p>TaskIsland is a local-first task manager for macOS and iOS. Tasks, tags, projects, subtasks, reminder times, focus records, and AI long-term memory are stored locally on the user's device by default. TaskIsland does not require account login, does not provide developer-operated cloud sync, does not include advertising SDKs, and does not use third-party analytics.</p>
+  <h2>AI model services</h2>
+  <p>Users may configure a third-party AI model service. Only when the user invokes an AI feature, or explicitly enables automatic organization in Settings, are the relevant task text, instructions, and required context sent directly from the user's device to the selected model provider. API keys or tokens are stored in the device Keychain and are not sent to a TaskIsland developer server. The selected provider may process, retain, or bill for this data under its own terms, and users should also review that provider's privacy policy. TaskIsland currently provides neither a developer-operated model proxy nor a developer-operated web search service.</p>
+  <h2>Speech, Calendar, and Reminders</h2>
+  <p>With permission, TaskIsland for iOS can use the microphone and Apple's speech recognition service to turn speech into editable text. Speech may be processed by Apple's system service. TaskIsland does not save the original recording as a task attachment or upload it to a developer server.</p>
+  <p>With permission, TaskIsland can read and modify Apple Calendar and Reminders data. Write operations are performed only in response to a direct user instruction or as part of a complete AI plan the user has approved. This content is not uploaded to a TaskIsland developer server.</p>
+  <h2>Notifications, widgets, Live Activities, and files</h2>
+  <p>TaskIsland may request local notification permission for task deadlines and focus completion. The iOS app, widgets, Lock Screen Live Activities, and Dynamic Island share only the necessary task summary and focus state locally through an Apple App Group. Users may also explicitly import or export JSON, Markdown, and CSV files.</p>
+  <h2>Data controls and deletion</h2>
+  <p>Users can disable AI long-term memory, clear model credentials, delete tasks, or export their data. Deleting the app and its local data removes data stored by TaskIsland on the device. Data already sent to a third-party model provider should be managed using the controls offered by that provider.</p>
   <h2>Contact</h2>
   <p>If you have questions, please contact the developer through <a href="https://github.com/howardrock88/TaskIsland/issues">GitHub Issues</a>.</p>
   <p><a href="./index.html">Back to home</a></p>
