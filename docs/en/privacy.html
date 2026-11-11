@@ -11,18 +11,23 @@
 </head>
 <body>
   <h1>TaskIsland Privacy Policy</h1>
-  <p>Last updated: July 31, 2026</p>
+  <p>Last updated: November 11, 2026</p>
+  <h2>Scope</h2>
+  <p>This policy covers TaskIsland for macOS and iOS. Features vary by platform, version and distribution channel. The Mac App Store build does not include third-party AI, speech recognition, or Apple Calendar/Reminders integration. The relevant sections below apply only to versions offering those features; they do not imply that the Mac App Store build requests those permissions.</p>
   <h2>Data handling</h2>
-  <p>TaskIsland is a local-first task manager for macOS and iOS. Tasks, tags, projects, subtasks, reminder times, focus records, and AI long-term memory are stored locally on the user's device by default. TaskIsland does not require account login, does not provide developer-operated cloud sync, does not include advertising SDKs, and does not use third-party analytics.</p>
+  <p>TaskIsland is a local-first task manager for macOS and iOS. Tasks, tags, projects, subtasks, reminder times, focus records, and AI long-term memory are stored locally on the user's device by default. When the user is signed in to iCloud on supported devices, task records and completion events may synchronize through Apple's private CloudKit database. TaskIsland does not require a TaskIsland account, does not operate its own sync server, does not include advertising SDKs, and does not use third-party analytics.</p>
+  <h2>iCloud synchronization</h2>
+  <p>When sync is enabled and iCloud is available, TaskIsland uses Apple's iCloud/CloudKit private database only for the user's own task data and completion events. Participating devices need the same iCloud account and compatible app versions. Appearance, language, credentials, permissions, widget snapshots and local notification schedules remain device-local. If iCloud is unavailable, the user is not signed in, or sync is disabled, TaskIsland remains usable locally and does not upload task data to a TaskIsland developer server. On Mac, sync can be enabled or disabled in Settings → Sync &amp; Data.</p>
   <h2>AI model services</h2>
   <p>Users may configure a third-party AI model service. Only when the user invokes an AI feature, or explicitly enables automatic organization in Settings, are the relevant task text, instructions, and required context sent directly from the user's device to the selected model provider. API keys or tokens are stored in the device Keychain and are not sent to a TaskIsland developer server. The selected provider may process, retain, or bill for this data under its own terms, and users should also review that provider's privacy policy. TaskIsland currently provides neither a developer-operated model proxy nor a developer-operated web search service.</p>
   <h2>Speech, Calendar, and Reminders</h2>
   <p>With permission, TaskIsland for iOS can use the microphone and Apple's speech recognition service to turn speech into editable text. Speech may be processed by Apple's system service. TaskIsland does not save the original recording as a task attachment or upload it to a developer server.</p>
   <p>With permission, TaskIsland can read and modify Apple Calendar and Reminders data. Write operations are performed only in response to a direct user instruction or as part of a complete AI plan the user has approved. This content is not uploaded to a TaskIsland developer server.</p>
   <h2>Notifications, widgets, Live Activities, and files</h2>
-  <p>TaskIsland may request local notification permission for task deadlines and focus completion. The iOS app, widgets, Lock Screen Live Activities, and Dynamic Island share only the necessary task summary and focus state locally through an Apple App Group. Users may also explicitly import or export JSON, Markdown, and CSV files.</p>
+  <p>TaskIsland may request local notification permission for task deadlines and focus completion. CloudKit change notifications also use Apple's push service. The app and widgets share necessary task snapshots locally through an Apple App Group; on iOS, necessary focus state can also be shared with Lock Screen Live Activities and Dynamic Island. The Mac App Store build imports JSON or CSV and exports JSON, CSV or Markdown. User-selected custom alert audio and its file-access authorization remain on the device and are not uploaded through task synchronization.</p>
   <h2>Data controls and deletion</h2>
   <p>Users can disable AI long-term memory, clear model credentials, delete tasks, or export their data. Deleting the app and its local data removes data stored by TaskIsland on the device. Data already sent to a third-party model provider should be managed using the controls offered by that provider.</p>
+  <p>Turning off iCloud sync does not clear local tasks or remove existing iCloud records. Deleting a task while sync is enabled can synchronize that deletion to compatible devices using the same account. Uninstalling the app alone does not delete data already synced to iCloud. To remove synced tasks, delete the relevant tasks in the app with sync enabled and allow synchronization to finish.</p>
   <h2>Contact</h2>
   <p>If you have questions, please contact the developer through <a href="https://github.com/howardrock88/TaskIsland/issues">GitHub Issues</a>.</p>
   <p><a href="./index.html">Back to home</a></p>
