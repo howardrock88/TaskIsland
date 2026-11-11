@@ -442,16 +442,27 @@ public final class TaskStore: ObservableObject {
         commitAndReload()
     }
 
-    public func startFocus(_ task: TaskItem, now: Date = Date()) {
+    public func startFocus(_ task: TaskItem, now: Date = Date(), defaultMinutes: Int = 25, resetElapsed: Bool = false) {
         guard !task.isCompleted else { return }
 
         for activeTask in incompleteTasks where activeTask.focusStartedAt != nil && activeTask.id != task.id {
             stopFocusClock(activeTask, now: now)
         }
 
+        let wasPausedInAttention = focusAttentionTaskID == task.id
         clearCurrentFlags()
         task.isCurrent = true
         focusAttentionTaskID = task.id
+        if task.focusStartedAt == nil {
+            let targetSeconds = TimeInterval(focusTargetMinutes(for: task, defaultMinutes: defaultMinutes) * 60)
+            let canContinuePausedRound = !resetElapsed
+                && task.focusSeconds > 0
+                && task.focusSeconds < targetSeconds
+                && wasPausedInAttention
+            if !canContinuePausedRound {
+                task.focusSeconds = 0
+            }
+        }
         task.focusStartedAt = task.focusStartedAt ?? now
         task.updatedAt = now
         commitAndReload()
@@ -472,9 +483,9 @@ public final class TaskStore: ObservableObject {
         commitAndReload()
     }
 
-    public func toggleFocus(_ task: TaskItem, now: Date = Date()) {
+    public func toggleFocus(_ task: TaskItem, now: Date = Date(), defaultMinutes: Int = 25) {
         if task.focusStartedAt == nil {
-            startFocus(task, now: now)
+            startFocus(task, now: now, defaultMinutes: defaultMinutes)
         } else {
             pauseFocus(task, now: now)
         }

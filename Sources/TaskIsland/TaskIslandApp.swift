@@ -8,13 +8,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        AppMenuController.install()
+        applyBundledDockIcon()
 
         do {
             let store = try TaskStore()
             let settings = AppSettings()
             self.store = store
             self.settings = settings
+            AppMenuController.install(settings: settings)
             AppCoordinator.shared.start(store: store, settings: settings)
         } catch {
             let alert = NSAlert()
@@ -36,6 +37,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func applyBundledDockIcon() {
+        if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+           let image = NSImage(contentsOf: iconURL) {
+            NSApp.applicationIconImage = image
+        }
+    }
+
     private func handleShortcutURL(_ url: URL) {
         guard url.scheme == "taskisland" else { return }
 
@@ -51,7 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             store?.addTask(title: title, notes: notes, priority: priority)
         case "focus", "start":
             if let currentTask = store?.currentTask {
-                store?.startFocus(currentTask)
+                store?.startFocus(currentTask, defaultMinutes: settings?.defaultFocusMinutesInt ?? 25)
             }
         case "complete", "done":
             if let currentTask = store?.currentTask {

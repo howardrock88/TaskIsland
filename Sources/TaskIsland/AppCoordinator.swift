@@ -29,7 +29,7 @@ final class AppCoordinator {
         let islandPanelController = IslandPanelController(store: store, settings: settings)
         let taskPanelController = TaskPanelController(store: store, settings: settings)
         let quickAddPanelController = QuickAddPanelController(store: store, settings: settings)
-        let reminderNotificationScheduler = ReminderNotificationScheduler()
+        let reminderNotificationScheduler = ReminderNotificationScheduler(settings: settings)
         let statusItemController = StatusItemController(
             store: store,
             settings: settings,
@@ -82,6 +82,13 @@ final class AppCoordinator {
             }
             .store(in: &cancellables)
 
+        settings.$appLanguage
+            .sink { [weak statusItemController, weak settings] _ in
+                AppMenuController.install(settings: settings)
+                statusItemController?.update()
+            }
+            .store(in: &cancellables)
+
         settings.$quickAddShortcutKeyCode
             .combineLatest(settings.$quickAddShortcutModifiersRawValue)
             .dropFirst()
@@ -116,7 +123,12 @@ final class AppCoordinator {
         guard let hotKeyManager, let settings else { return }
 
         let didRegister = hotKeyManager.register(shortcut: settings.quickAddShortcut)
-        settings.quickAddShortcutStatusMessage = didRegister ? nil : "这个快捷键可能已被其他程序占用，请换一个组合。"
+        settings.quickAddShortcutStatusMessage = didRegister
+            ? nil
+            : settings.localized(
+                "这个快捷键可能已被其他程序占用，请换一个组合。",
+                "This shortcut may already be used by another app. Choose a different combination."
+            )
     }
 
     func showTaskPanel() {

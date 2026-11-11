@@ -19,6 +19,9 @@ final class IslandPanelController {
     private var frameAnimationGeneration = 0
     private var contentSwitchTask: Task<Void, Never>?
     private var reminderAlertTask: Task<Void, Never>?
+    private var focusCompletionWatchTask: Task<Void, Never>?
+    private var focusCompletionSoundTask: Task<Void, Never>?
+    private var focusCompletionSoundPlayers: [NSSound] = []
     private var eventMonitor: Any?
     private var globalMouseUpMonitor: Any?
 
@@ -76,6 +79,13 @@ final class IslandPanelController {
         self.hostingView = hostingView
         panel.contentView = hostingView
         installEventMonitor()
+        startFocusCompletionWatcher()
+    }
+
+    deinit {
+        focusCompletionWatchTask?.cancel()
+        focusCompletionSoundTask?.cancel()
+        reminderAlertTask?.cancel()
     }
 
     func setVisible(_ isVisible: Bool) {
@@ -92,7 +102,7 @@ final class IslandPanelController {
     }
 
     func refreshLayout(animated: Bool = false) {
-        clearStaleReminderAlertIfNeeded()
+        clearStaleAttentionAlertsIfNeeded()
         updateAttentionState()
         if store.focusAttentionTask != nil, !isPinned, isExpanded {
             collapseImmediatelyForAttention()
@@ -132,10 +142,107 @@ final class IslandPanelController {
         }
     }
 
+    private func startFocusCompletionWatcher() {
+        focusCompletionWatchTask?.cancel()
+        focusCompletionWatchTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                self?.showFocusCompletionIfNeeded(now: Date())
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+        }
+    }
+
+    private func showFocusCompletionIfNeeded(now: Date) {
+        guard let task = store.activeFocusTask else { return }
+        let remaining = store.focusRemainingSeconds(
+            for: task,
+            now: now,
+            defaultMinutes: settings.defaultFocusMinutesInt
+        )
+        guard remaining <= 0 else { return }
+        showFocusCompletionAlert(for: task, now: now)
+    }
+
+    private func showFocusCompletionAlert(for task: TaskItem, now: Date) {
+        let taskID = task.id
+        focusCompletionSoundTask?.cancel()
+
+        viewState.focusCompletionTaskID = taskID
+        viewState.focusCompletionStartedAt = now
+        viewState.attentionStartedAt = now
+        updateAttentionState()
+
+        store.stopFocus(task, now: now)
+        updateAttentionState()
+        playFocusCompletionSoundSequence()
+
+        if !isPinned && !isDragging {
+            setExpanded(false)
+        }
+        positionPanel(animated: true)
+        panel.orderFrontRegardless()
+    }
+
+    private func dismissFocusCompletionAlert() {
+        viewState.focusCompletionTaskID = nil
+        focusCompletionSoundTask?.cancel()
+        focusCompletionSoundTask = nil
+        stopFocusCompletionSounds()
+        updateAttentionState()
+        if !isExpanded && !isPinned {
+            positionPanel(animated: true)
+        }
+    }
+
+    private func playFocusCompletionSoundSequence() {
+        focusCompletionSoundTask?.cancel()
+        stopFocusCompletionSounds()
+        focusCompletionSoundTask = Task { @MainActor [weak self] in
+            for index in 0..<5 {
+                guard !Task.isCancelled else { return }
+                self?.playFocusCompletionSoundOnce()
+                if index < 4 {
+                    try? await Task.sleep(nanoseconds: 860_000_000)
+                }
+            }
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            self?.focusCompletionSoundPlayers.removeAll { !$0.isPlaying }
+        }
+    }
+
+    private func playFocusCompletionSoundOnce() {
+        focusCompletionSoundPlayers.removeAll { !$0.isPlaying }
+        let soundPaths = [
+            "/System/Library/Sounds/Glass.aiff",
+            "/System/Library/Sounds/Ping.aiff"
+        ]
+        let sound = soundPaths
+            .lazy
+            .compactMap { NSSound(contentsOfFile: $0, byReference: false) }
+            .first
+            ?? (NSSound(named: NSSound.Name("Glass"))?.copy() as? NSSound)
+            ?? (NSSound(named: NSSound.Name("Ping"))?.copy() as? NSSound)
+
+        guard let sound else {
+            NSSound.beep()
+            return
+        }
+        sound.volume = 0.92
+        sound.currentTime = 0
+        focusCompletionSoundPlayers.append(sound)
+        sound.play()
+    }
+
+    private func stopFocusCompletionSounds() {
+        focusCompletionSoundPlayers.forEach { $0.stop() }
+        focusCompletionSoundPlayers.removeAll()
+    }
+
     private func handleHoverChanged(_ hovered: Bool) {
         if hovered {
             collapseTask?.cancel()
             guard !isDragging else { return }
+            guard activeFocusCompletionTask == nil else { return }
             guard store.focusAttentionTask == nil else { return }
             setExpanded(true)
         } else {
@@ -332,7 +439,14 @@ final class IslandPanelController {
     }
 
     private var hasAttentionContent: Bool {
-        activeFocusAttentionTask != nil || activeReminderTask != nil
+        activeFocusCompletionTask != nil || activeFocusAttentionTask != nil || activeReminderTask != nil
+    }
+
+    private var activeFocusCompletionTask: TaskItem? {
+        guard let focusCompletionTaskID = viewState.focusCompletionTaskID else {
+            return nil
+        }
+        return store.incompleteTasks.first { $0.id == focusCompletionTaskID }
     }
 
     private var activeFocusAttentionTask: TaskItem? {
@@ -351,7 +465,7 @@ final class IslandPanelController {
     }
 
     private func updateAttentionState() {
-        clearStaleReminderAlertIfNeeded()
+        clearStaleAttentionAlertsIfNeeded()
         if let focusTask = store.focusAttentionTask {
             if viewState.focusAttentionTaskID != focusTask.id {
                 viewState.attentionStartedAt = Date()
@@ -374,7 +488,14 @@ final class IslandPanelController {
         positionPanel(animated: true)
     }
 
-    private func clearStaleReminderAlertIfNeeded() {
+    private func clearStaleAttentionAlertsIfNeeded() {
+        if let focusCompletionTaskID = viewState.focusCompletionTaskID,
+           !store.incompleteTasks.contains(where: { $0.id == focusCompletionTaskID }) {
+            viewState.focusCompletionTaskID = nil
+            focusCompletionSoundTask?.cancel()
+            focusCompletionSoundTask = nil
+        }
+
         guard let reminderTaskID = viewState.reminderTaskID else { return }
         guard store.incompleteTasks.contains(where: { $0.id == reminderTaskID }) else {
             viewState.reminderTaskID = nil
@@ -582,17 +703,28 @@ final class IslandPanelController {
     }
 
     private func handleAttentionAction(at point: NSPoint) -> Bool {
-        guard viewState.usesAttentionSize,
-              let focusTask = activeFocusAttentionTask else {
+        guard viewState.usesAttentionSize else {
             return false
         }
 
         let topLeftPoint = CGPoint(x: point.x, y: panel.frame.height - point.y)
         let frames = attentionActionFrames(panelSize: panel.frame.size)
 
+        if activeFocusCompletionTask != nil {
+            if focusCompletionDismissFrame(panelSize: panel.frame.size).contains(topLeftPoint) {
+                dismissFocusCompletionAlert()
+                return true
+            }
+            return false
+        }
+
+        guard let focusTask = activeFocusAttentionTask else {
+            return false
+        }
+
         if frames.pause.contains(topLeftPoint) {
             if focusTask.focusStartedAt == nil {
-                store.startFocus(focusTask)
+                store.startFocus(focusTask, defaultMinutes: settings.defaultFocusMinutesInt)
             } else {
                 store.pauseFocus(focusTask)
             }
@@ -619,6 +751,15 @@ final class IslandPanelController {
         return (
             pause: CGRect(x: pauseX, y: y, width: buttonSize, height: buttonSize),
             stop: CGRect(x: stopX, y: y, width: buttonSize, height: buttonSize)
+        )
+    }
+
+    private func focusCompletionDismissFrame(panelSize: NSSize) -> CGRect {
+        CGRect(
+            x: max(panelSize.width - 112, 0),
+            y: 0,
+            width: min(112, panelSize.width),
+            height: panelSize.height
         )
     }
 

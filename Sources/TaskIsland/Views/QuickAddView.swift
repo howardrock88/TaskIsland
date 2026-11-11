@@ -33,7 +33,7 @@ struct QuickAddView: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(.tint)
 
-                TextField("明天 10点 发周报 #工作 !高 /30m", text: $title)
+                TextField(t("明天 10点 发周报 #工作 !高 /30m", "Tomorrow 10am weekly report #work !high /30m"), text: $title)
                     .textFieldStyle(.plain)
                     .font(.system(size: 22, weight: .semibold))
                     .focused($isFocused)
@@ -47,7 +47,7 @@ struct QuickAddView: View {
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(QuickAddCloseButtonStyle())
-                .help("关闭")
+                .help(t("关闭", "Close"))
             }
 
             HStack(spacing: 8) {
@@ -59,7 +59,7 @@ struct QuickAddView: View {
                             Circle()
                                 .fill(priority.tintColor(settings: settings))
                                 .frame(width: 8, height: 8)
-                            Text(priority.shortTitle)
+                            Text(priority.localizedShortTitle(settings: settings))
                         }
                     }
                     .buttonStyle(PriorityChoiceButtonStyle(isSelected: selectedPriority == priority, tint: priority.tintColor(settings: settings)))
@@ -67,9 +67,9 @@ struct QuickAddView: View {
             }
 
             HStack {
-                Text("支持日期、标签、优先级和预计时长")
+                Text(t("支持日期、标签、优先级和预计时长", "Supports dates, tags, priorities, and duration"))
                 Spacer()
-                Text("Esc 取消")
+                Text(t("Esc 取消", "Esc to cancel"))
             }
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.secondary)
@@ -135,6 +135,10 @@ struct QuickAddView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else { return }
         onSubmit(trimmedTitle, selectedPriority)
+    }
+
+    private func t(_ chinese: String, _ english: String) -> String {
+        settings.localized(chinese, english)
     }
 }
 

@@ -9,6 +9,11 @@ struct TaskIslandShortcut: Equatable {
         "\(Self.modifierDisplayName(rawValue: Int(modifiers))) + \(Self.keyDisplayName(keyCode: Int(keyCode)))"
     }
 
+    @MainActor
+    func displayName(settings: AppSettings) -> String {
+        "\(Self.modifierDisplayName(rawValue: Int(modifiers), settings: settings)) + \(Self.keyDisplayName(keyCode: Int(keyCode), settings: settings))"
+    }
+
     static let defaultQuickAdd = TaskIslandShortcut(
         keyCode: UInt32(kVK_ANSI_N),
         modifiers: UInt32(controlKey | optionKey)
@@ -58,8 +63,24 @@ struct TaskIslandShortcut: Equatable {
         modifierChoices.first { $0.rawValue == rawValue }?.displayName ?? "自定义"
     }
 
+    @MainActor
+    static func modifierDisplayName(rawValue: Int, settings: AppSettings) -> String {
+        modifierChoices.first { $0.rawValue == rawValue }?.displayName ?? settings.localized("自定义", "Custom")
+    }
+
     static func keyDisplayName(keyCode: Int) -> String {
         keyChoices.first { $0.keyCode == keyCode }?.displayName ?? "按键 \(keyCode)"
+    }
+
+    @MainActor
+    static func keyDisplayName(keyCode: Int, settings: AppSettings) -> String {
+        guard let choice = keyChoices.first(where: { $0.keyCode == keyCode }) else {
+            return settings.localized("按键 \(keyCode)", "Key \(keyCode)")
+        }
+        if choice.keyCode == Int(kVK_Space) {
+            return settings.localized("空格", "Space")
+        }
+        return choice.displayName
     }
 
     static func sanitized(keyCode: Int, modifiersRawValue: Int) -> TaskIslandShortcut {

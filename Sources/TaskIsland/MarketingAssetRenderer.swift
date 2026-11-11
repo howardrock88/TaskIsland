@@ -1,10 +1,24 @@
 import AppKit
+import Darwin
 import SwiftUI
 import TaskIslandCore
 
 @MainActor
 enum MarketingAssetRenderer {
     private static let renderScale: CGFloat = 3
+    private static var renderLanguage: AppLanguage {
+        let arguments = CommandLine.arguments
+        guard let index = arguments.firstIndex(of: "--marketing-language"),
+              arguments.indices.contains(index + 1),
+              let language = AppLanguage(rawValue: arguments[index + 1]) else {
+            return .chinese
+        }
+        return language
+    }
+
+    private static var isEnglishRender: Bool {
+        renderLanguage == .english
+    }
 
     static func renderAll() throws {
         if let icon = NSImage(contentsOfFile: "\(FileManager.default.currentDirectoryPath)/Resources/AppIcon.png") {
@@ -48,7 +62,7 @@ enum MarketingAssetRenderer {
     private static func renderAttentionIsland(to url: URL) throws {
         let store = try makeStore()
         guard let focusTask = store.addTaskFromMetadata(
-            title: "Deepseek 文章",
+            title: isEnglishRender ? "DeepSeek article" : "Deepseek 文章",
             isCurrent: true,
             priority: .high,
             estimatedMinutes: 25
@@ -109,7 +123,7 @@ enum MarketingAssetRenderer {
 
     private static func renderQuickAdd(to url: URL) throws {
         let view = QuickAddView(
-            initialTitle: "明天 10点 发周报 #工作 !高 /30m",
+            initialTitle: isEnglishRender ? " " : "明天 10点 发周报 #工作 !高 /30m",
             initialPriority: .high,
             shouldAutoFocus: false,
             onSubmit: { _, _ in },
@@ -124,15 +138,15 @@ enum MarketingAssetRenderer {
         let store = try makeStore()
         let now = Date()
         guard let task = store.addTaskFromMetadata(
-            title: "Deepseek 文章",
-            notes: "补充文章结构、引用链接和发布前检查。",
+            title: isEnglishRender ? "DeepSeek article" : "Deepseek 文章",
+            notes: isEnglishRender ? "Add structure, references, and pre-publish checks." : "补充文章结构、引用链接和发布前检查。",
             isCurrent: true,
             priority: .high,
             dueAt: Calendar.current.date(byAdding: .hour, value: 4, to: now),
             reminderAt: Calendar.current.date(byAdding: .hour, value: 3, to: now),
             repeatRule: .weekly,
-            tags: ["AI", "研究"],
-            projectName: "写作",
+            tags: isEnglishRender ? ["AI", "Research"] : ["AI", "研究"],
+            projectName: isEnglishRender ? "Writing" : "写作",
             estimatedMinutes: 25,
             todaySortIndex: 0
         ) else {
@@ -225,6 +239,9 @@ enum MarketingAssetRenderer {
             window.close()
             throw RenderError.imageRenderingFailed(url.lastPathComponent)
         }
+        if let bitmapData = bitmap.bitmapData {
+            memset(bitmapData, 0, bitmap.bytesPerRow * bitmap.pixelsHigh)
+        }
         bitmap.size = canvasSize
         hostingView.cacheDisplay(in: hostingView.bounds, to: bitmap)
         window.close()
@@ -279,6 +296,7 @@ enum MarketingAssetRenderer {
         }
         defaults.removePersistentDomain(forName: suiteName)
         let settings = AppSettings(defaults: defaults)
+        settings.appLanguage = renderLanguage
         settings.darkGlassMode = false
         settings.defaultFocusMinutes = 25
         settings.capsuleTransparencyPercent = 28
@@ -290,20 +308,29 @@ enum MarketingAssetRenderer {
 
     private static func addPriorityCountTasks(to store: TaskStore) {
         for index in 1...2 {
-            store.addTaskFromMetadata(title: "高优先级 \(index)", priority: .high)
+            store.addTaskFromMetadata(
+                title: isEnglishRender ? "High Priority \(index)" : "高优先级 \(index)",
+                priority: .high
+            )
         }
         for index in 1...5 {
-            store.addTaskFromMetadata(title: "中优先级 \(index)", priority: .medium)
+            store.addTaskFromMetadata(
+                title: isEnglishRender ? "Medium Priority \(index)" : "中优先级 \(index)",
+                priority: .medium
+            )
         }
         for index in 1...3 {
-            store.addTaskFromMetadata(title: "低优先级 \(index)", priority: .low)
+            store.addTaskFromMetadata(
+                title: isEnglishRender ? "Low Priority \(index)" : "低优先级 \(index)",
+                priority: .low
+            )
         }
     }
 
     private static func addDemoTasks(to store: TaskStore, includeFocus: Bool) throws {
         let now = Date()
         guard let focusTask = store.addTaskFromMetadata(
-            title: "Deepseek 文章",
+            title: isEnglishRender ? "DeepSeek article" : "Deepseek 文章",
             isCurrent: true,
             priority: .high,
             dueAt: Calendar.current.date(byAdding: .hour, value: 4, to: now),
@@ -314,28 +341,28 @@ enum MarketingAssetRenderer {
         }
 
         store.addTaskFromMetadata(
-            title: "产品宣传图",
+            title: isEnglishRender ? "Product promo visuals" : "产品宣传图",
             priority: .high,
             dueAt: Calendar.current.date(byAdding: .hour, value: 6, to: now),
             estimatedMinutes: 30,
             todaySortIndex: 1
         )
         store.addTaskFromMetadata(
-            title: "同步 Apple 提醒事项",
+            title: isEnglishRender ? "Sync Apple Reminders" : "同步 Apple 提醒事项",
             priority: .medium,
             dueAt: Calendar.current.date(byAdding: .day, value: 1, to: now),
             estimatedMinutes: 15
         )
         store.addTaskFromMetadata(
-            title: "导出 Markdown 备份",
+            title: isEnglishRender ? "Export Markdown backup" : "导出 Markdown 备份",
             priority: .low
         )
         store.addTaskFromMetadata(
-            title: "整理图标细节",
+            title: isEnglishRender ? "Refine icon details" : "整理图标细节",
             isCompleted: true,
             completedAt: now.addingTimeInterval(-1_800),
             priority: .medium,
-            tags: ["设计"],
+            tags: isEnglishRender ? ["Design"] : ["设计"],
             estimatedMinutes: 20
         )
 

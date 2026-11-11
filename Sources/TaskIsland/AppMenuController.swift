@@ -2,7 +2,7 @@ import AppKit
 
 @MainActor
 enum AppMenuController {
-    static func install() {
+    static func install(settings: AppSettings? = nil) {
         let mainMenu = NSMenu()
 
         let appMenuItem = NSMenuItem()
@@ -12,24 +12,24 @@ enum AppMenuController {
         appMenuItem.submenu = appMenu
 
         appMenu.addItem(
-            withTitle: "关于任务岛",
+            withTitle: localized("关于任务岛", "About TaskIsland", settings: settings),
             action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
             keyEquivalent: ""
         )
         appMenu.addItem(.separator())
         appMenu.addItem(
-            withTitle: "显示任务岛",
+            withTitle: localized("显示任务岛", "Show TaskIsland", settings: settings),
             action: #selector(AppMenuActions.showTaskPanel),
             keyEquivalent: "1"
         )
         appMenu.addItem(
-            withTitle: "快速新增",
+            withTitle: localized("快速新增", "Quick Add", settings: settings),
             action: #selector(AppMenuActions.showQuickAdd),
             keyEquivalent: ""
         )
         appMenu.addItem(.separator())
         appMenu.addItem(
-            withTitle: "退出任务岛",
+            withTitle: localized("退出任务岛", "Quit TaskIsland", settings: settings),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
@@ -40,6 +40,10 @@ enum AppMenuController {
         }
 
         NSApp.mainMenu = mainMenu
+    }
+
+    private static func localized(_ chinese: String, _ english: String, settings: AppSettings?) -> String {
+        settings?.localized(chinese, english) ?? chinese
     }
 }
 
